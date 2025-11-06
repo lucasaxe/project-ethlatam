@@ -1,0 +1,133 @@
+/* components/dashboard/Forms.module.css */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  
+  .formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .formGroup label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #333;
+  }
+  
+  .formGroup input[type="text"],
+  .formGroup input[type="email"],
+  .formGroup input[type="url"],
+  .formGroup textarea {
+    width: 100%;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    box-sizing: border-box; 
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  
+  .formGroup input:focus,
+  .formGroup textarea:focus {
+    outline: none;
+    border-color: var(--color-primary-blue);
+    box-shadow: 0 0 0 3px rgba(58, 125, 255, 0.2);
+  }
+  
+  .formGroup textarea {
+    resize: vertical;
+    min-height: 120px;
+  }
+  
+  .formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    padding-top: 1.5rem;
+  }
+  
+  .buttonPrimary, .buttonSecondary {
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .buttonPrimary {
+    background-image: linear-gradient(90deg, var(--color-primary-blue), var(--color-secondary-green));
+    background-size: 150% auto;
+    color: white;
+    border: none;
+  }
+  .buttonPrimary:hover:not(:disabled) {
+    background-position: right center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+  
+  .buttonSecondary {
+    background-color: transparent;
+    color: var(--color-primary-blue);
+    border: 1px solid var(--color-primary-blue);
+  }
+  .buttonSecondary:hover:not(:disabled) {
+    background-color: rgba(58, 125, 255, 0.05);
+  }
+  
+  .buttonPrimary:disabled, .buttonSecondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    background-image: none; 
+    background-color: #ccc;
+  }
+  
+  .buttonSecondary:disabled {
+    border-color: #ccc;
+    color: #999;
+    background-color: transparent;
+  }
+  
+  
+  /* --- NOVOS ESTILOS PARA O UPLOAD DE IMAGEM --- */
+  .fileInput {
+    font-size: 0.9rem;
+    padding: 0;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  .fileInput::file-selector-button {
+    font-weight: 600;
+    color: var(--color-primary-blue);
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-right: 1px solid #ccc;
+    background-color: #f9fafb;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .fileInput::file-selector-button:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .imagePreview {
+    width: 100%;
+    max-height: 250px;
+    margin-top: 1rem;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid #e0e0e0;
+  }

@@ -1,0 +1,247 @@
+/* app/dashboard/ong/Dashboard.module.css */
+
+.dashboardPage {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: system-ui, sans-serif;
+  color: var(--color-text-primary);
+  background-color: var(--color-background-light); 
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+  background-image: linear-gradient(90deg, var(--color-primary-blue), var(--color-secondary-green));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.buttonPrimary, .buttonSecondary {
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.buttonPrimary {
+  background-image: linear-gradient(90deg, var(--color-primary-blue), var(--color-secondary-green));
+  background-size: 150% auto; 
+  color: white;
+  border: none;
+}
+.buttonPrimary:hover {
+  background-position: right center; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
+}
+
+.buttonSecondary {
+  background-color: transparent;
+  color: var(--color-primary-blue);
+  border: 1px solid var(--color-primary-blue);
+}
+.buttonSecondary:hover {
+  background-color: rgba(58, 125, 255, 0.05); 
+  border-color: var(--color-primary-blue);
+}
+
+.loading, .error {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 4rem;
+  color: #777;
+}
+
+.section {
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+}
+
+.section h2 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 2rem;
+}
+
+.metricBox {
+  background-color: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.metricBox strong {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.metricBox span {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-primary-blue);
+  line-height: 1.2;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 0;
+}
+
+.infoBox {
+  background-color: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  word-break: break-word; 
+}
+
+.infoBox strong {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+
+.infoBox span {
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.infoBox p {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.fullSpan {
+  grid-column: 1 / -1; 
+}
+
+.postList {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.postItem {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: #ffffff; 
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  overflow: hidden; 
+  display: flex;
+  flex-direction: column;
+}
+
+.postItem:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.postImage {
+  width: 100%;
+  height: 200px; 
+  object-fit: cover; 
+}
+
+.postContent {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.postContent h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-primary-blue); 
+  font-size: 1.2rem;
+}
+.postContent p {
+  margin: 0 0 1rem 0;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  flex-grow: 1;
+}
+
+.tokenDisplay {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tokenIcon {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  margin-top: -0.2rem;
+}
+
+.postFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.postLikes {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  /* --- COR DO CORAÇÃO AGORA NA PALETA --- */
+  color: var(--color-primary-blue); /* Ou var(--color-secondary-green) se preferir verde */
+}
