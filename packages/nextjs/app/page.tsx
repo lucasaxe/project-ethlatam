@@ -1,80 +1,58 @@
 "use client";
 
-import Link from "next/link";
-import { Address } from "@scaffold-ui/components";
+// Precisa ser um Client Component para usar hooks
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
-import { hardhat } from "viem/chains";
 import { useAccount } from "wagmi";
-import { BugAntIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { useTargetNetwork } from "~~/hooks/scaffold-eth";
 
-const Home: NextPage = () => {
-  const { address: connectedAddress } = useAccount();
-  const { targetNetwork } = useTargetNetwork();
+const LandingPage: NextPage = () => {
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const { openConnectModal } = useConnectModal();
+  const { isConnected } = useAccount();
+  const router = useRouter();
+
+  // Este hook observa a intenção de redirecionamento e o status da conexão
+  useEffect(() => {
+    // Se o usuário se conectou com sucesso E existe um caminho de redirecionamento salvo
+    if (isConnected && redirectPath) {
+      router.push(redirectPath);
+    }
+  }, [isConnected, redirectPath, router]);
+
+  const handleConnect = (path: string) => {
+    // Se o usuário já estiver conectado, apenas navega
+    if (isConnected) {
+      router.push(path);
+    } else {
+      // Se não, salva o caminho e abre o modal de conexão
+      setRedirectPath(path);
+      if (openConnectModal) {
+        openConnectModal();
+      }
+    }
+  };
 
   return (
-    <>
-      <div className="flex items-center flex-col grow pt-10">
-        <div className="px-5">
-          <h1 className="text-center">
-            <span className="block text-2xl mb-2">Welcome to</span>
-            <span className="block text-4xl font-bold">Scaffold-ETH 2</span>
-          </h1>
-          <div className="flex justify-center items-center space-x-2 flex-col">
-            <p className="my-2 font-medium">Connected Address:</p>
-            <Address
-              address={connectedAddress}
-              chain={targetNetwork}
-              blockExplorerAddressLink={
-                targetNetwork.id === hardhat.id ? `/blockexplorer/address/${connectedAddress}` : undefined
-              }
-            />
-          </div>
-          <p className="text-center text-lg">
-            Get started by editing{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/nextjs/app/page.tsx
-            </code>
-          </p>
-          <p className="text-center text-lg">
-            Edit your smart contract{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              YourContract.sol
-            </code>{" "}
-            in{" "}
-            <code className="italic bg-base-300 text-base font-bold max-w-full break-words break-all inline-block">
-              packages/hardhat/contracts
-            </code>
-          </p>
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-screen text-center px-4">
+      {/* Título Centralizado */}
+      <h1 className="text-5xl font-bold mb-12">DonationChains</h1>
 
-        <div className="grow bg-base-300 w-full mt-16 px-8 py-12">
-          <div className="flex justify-center items-center gap-12 flex-col md:flex-row">
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <BugAntIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Tinker with your smart contract using the{" "}
-                <Link href="/debug" passHref className="link">
-                  Debug Contracts
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-            <div className="flex flex-col bg-base-100 px-10 py-10 text-center items-center max-w-xs rounded-3xl">
-              <MagnifyingGlassIcon className="h-8 w-8 fill-secondary" />
-              <p>
-                Explore your local transactions with the{" "}
-                <Link href="/blockexplorer" passHref className="link">
-                  Block Explorer
-                </Link>{" "}
-                tab.
-              </p>
-            </div>
-          </div>
-        </div>
+      {/* Botões lado a lado */}
+      <div className="flex flex-col md:flex-row gap-6 mb-8">
+        <button className="btn btn-primary btn-lg min-w-48" onClick={() => handleConnect("/home")}>
+          Usuário
+        </button>
+        <button className="btn btn-secondary btn-lg min-w-48" onClick={() => handleConnect("/ong")}>
+          ONG
+        </button>
       </div>
-    </>
+
+      {/* Descrição Centralizada */}
+      <p className="text-xl text-base-content/80">Conectando doadores a quem realmente faz a diferença</p>
+    </div>
   );
 };
 
-export default Home;
+export default LandingPage;
