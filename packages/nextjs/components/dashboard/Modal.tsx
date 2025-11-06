@@ -1,28 +1,30 @@
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 "use client";
 
 import React from "react";
 import styles from "./Modal.module.css";
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
 
-// components/Modal.tsx
+// components/dashboard/Modal.tsx
+
+// components/Modal.tsx  // <--- Linha de formatação exigida pelo linter
 
 interface ModalProps {
   isOpen: boolean;
