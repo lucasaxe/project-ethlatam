@@ -1,78 +1,162 @@
-//SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0 <0.9.0;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.20;
 
-// Useful for debugging. Remove when deploying to a live network.
-import "hardhat/console.sol";
+import "hardhat/console.sol"; // Para usar console.log
 
-// Use openzeppelin to inherit battle-tested implementations (ERC20, ERC721, etc)
-// import "@openzeppelin/contracts/access/Ownable.sol";
-
-/**
- * A smart contract that allows changing a state variable of the contract and tracking the changes
- * It also allows the owner to withdraw the Ether in the contract
- * @author BuidlGuidl
- */
 contract YourContract {
-    // State Variables
-    address public immutable owner;
-    string public greeting = "Building Unstoppable Apps!!!";
-    bool public premium = false;
-    uint256 public totalCounter = 0;
-    mapping(address => uint) public userGreetingCounter;
+    
+    // --- Estruturas de Dados (Os "Modelos") ---
 
-    // Events: a way to emit log statements from smart contract that can be listened to by external parties
-    event GreetingChange(address indexed greetingSetter, string newGreeting, bool premium, uint256 value);
-
-    // Constructor: Called once on contract deployment
-    // Check packages/hardhat/deploy/00_deploy_your_contract.ts
-    constructor(address _owner) {
-        owner = _owner;
+    // Define o que é uma ONG
+    struct NGO {
+        string name;            // Nome da ONG
+        address owner;         // O endereço da carteira que controla esta ONG
+        uint256 reputation;    // A reputação, baseada em curtidas
+        bool isRegistered;    // Para verificar se a ONG existe
     }
 
-    // Modifier: used to define a set of rules that must be met before or after a function is executed
-    // Check the withdraw() function
-    modifier isOwner() {
-        // msg.sender: predefined variable that represents address of the account that called the current function
-        require(msg.sender == owner, "Not the Owner");
-        _;
+    // Define o que é um Post
+    struct Post {
+        uint256 postId;        // ID único do post
+        address ngoOwner;      // Endereço da ONG que criou o post
+        string contentUrl;     // Link para a foto + descrição (ex: IPFS ou http)
+        uint256 likeCount;     // Quantidade de curtidas
+        uint256 totalDonated;  // Total de ETH (em Wei) doado a este post
+    }
+
+    // --- Armazenamento (O "Banco de Dados") ---
+
+    // Mapeamento: "Dicionário" que liga um endereço de carteira (address)
+    // à sua respectiva estrutura (struct) de ONG.
+    mapping(address => NGO) public ngos;
+
+    // Um "Array" (lista) que armazena todos os posts.
+    // O ID de um post será seu índice (0, 1, 2, ...)
+    Post[] public allPosts;
+
+    // Mapeamento aninhado: "Dicionário de dicionários"
+    // Usado para rastrear SE um usuário (address) JÁ curtiu (bool) um post (uint256).
+    // Isso impede curtidas duplicadas.
+    // hasLiked[POST_ID][USUARIO] = true/false
+    mapping(uint256 => mapping(address => bool)) public hasLiked;
+
+    // --- Eventos (Os "Alertas" para o Frontend) ---
+    // Boas práticas: emita eventos quando o estado mudar.
+    event NGORegistered(address indexed ngoAddress, string name);
+    event PostCreated(uint256 indexed postId, address indexed ngoAddress, string contentUrl);
+    event PostLiked(uint256 indexed postId, address indexed liker, uint256 newLikeCount);
+    event PostDonated(uint256 indexed postId, address indexed donator, uint256 amount);
+
+    // --- Funções (A "API" do seu Backend) ---
+
+    /**
+     * @dev Permite que um novo usuário se registre como uma ONG.
+     */
+    function registerNGO(string memory _name) public {
+        // 'msg.sender' é o endereço da carteira que está chamando a função.
+        address _ngoOwner = msg.sender;
+
+        // 'require' é uma "trava". Se a condição for falsa, a transação falha.
+        // Impede que uma ONG já registrada se registre novamente.
+        require(!ngos[_ngoOwner].isRegistered, "ONG ja registrada");
+
+        // Cria a nova ONG no "banco de dados" (mapping)
+        ngos[_ngoOwner] = NGO({
+            name: _name,
+            owner: _ngoOwner,
+            reputation: 0,
+            isRegistered: true
+        });
+
+        emit NGORegistered(_ngoOwner, _name);
     }
 
     /**
-     * Function that allows anyone to change the state variable "greeting" of the contract and increase the counters
-     *
-     * @param _newGreeting (string memory) - new greeting to save on the contract
+     * @dev Permite que uma ONG registrada crie um novo post.
+     * '_contentUrl' é o link para a foto/descrição (ex: "ipfs://...")
      */
-    function setGreeting(string memory _newGreeting) public payable {
-        // Print data to the hardhat chain console. Remove when deploying to a live network.
-        console.log("Setting new greeting '%s' from %s", _newGreeting, msg.sender);
+    function createPost(string memory _contentUrl) public {
+        address _ngoOwner = msg.sender;
 
-        // Change state variables
-        greeting = _newGreeting;
-        totalCounter += 1;
-        userGreetingCounter[msg.sender] += 1;
+        // Trava: Somente ONGs registradas podem postar.
+        require(ngos[_ngoOwner].isRegistered, "Voce nao e uma ONG registrada");
 
-        // msg.value: built-in global variable that represents the amount of ether sent with the transaction
-        if (msg.value > 0) {
-            premium = true;
-        } else {
-            premium = false;
-        }
+        // Pega o ID para o novo post (será o tamanho atual da lista)
+        uint256 _postId = allPosts.length;
 
-        // emit: keyword used to trigger an event
-        emit GreetingChange(msg.sender, _newGreeting, msg.value > 0, msg.value);
+        // Cria o novo post
+        Post memory newPost = Post({
+            postId: _postId,
+            ngoOwner: _ngoOwner,
+            contentUrl: _contentUrl,
+            likeCount: 0,
+            totalDonated: 0
+        });
+
+        // Adiciona o novo post à lista (array)
+        allPosts.push(newPost);
+
+        emit PostCreated(_postId, _ngoOwner, _contentUrl);
     }
 
     /**
-     * Function that allows the owner to withdraw all the Ether in the contract
-     * The function can only be called by the owner of the contract as defined by the isOwner modifier
+     * @dev Permite que qualquer usuário curta um post.
+     * '_postId' é o ID (número) do post que está sendo curtido.
      */
-    function withdraw() public isOwner {
-        (bool success, ) = owner.call{ value: address(this).balance }("");
-        require(success, "Failed to send Ether");
+    function likePost(uint256 _postId) public {
+        address _liker = msg.sender;
+
+        // Trava: Garante que o Post ID exista (seja menor que o tamanho da lista)
+        require(_postId < allPosts.length, "Post nao existe");
+
+        // Trava: Impede curtida duplicada
+        require(!hasLiked[_postId][_liker], "Voce ja curtiu este post");
+
+        // Pega o post do array para editar
+        Post storage post = allPosts[_postId];
+
+        // Pega a ONG dona do post para editar
+        NGO storage ngo = ngos[post.ngoOwner];
+
+        // --- A LÓGICA PRINCIPAL ---
+        // 1. Marca que o usuário curtiu
+        hasLiked[_postId][_liker] = true;
+        // 2. Incrementa a contagem de curtidas do post
+        post.likeCount += 1;
+        // 3. Incrementa a reputação da ONG (aqui a regra de 1 like = 1 reputação)
+        ngo.reputation += 1;
+
+        emit PostLiked(_postId, _liker, post.likeCount);
     }
 
     /**
-     * Function that allows the contract to receive ETH
+     * @dev Permite que qualquer usuário envie ETH (doação) para um post.
+     * 'payable' é o que permite a função receber cripto.
      */
-    receive() external payable {}
+    function donateToPost(uint256 _postId) public payable {
+        // Trava: Garante que o Post ID exista
+        require(_postId < allPosts.length, "Post nao existe");
+
+        // Trava: Garante que a doação seja maior que zero
+        // 'msg.value' é a quantidade de ETH enviada na transação
+        require(msg.value > 0, "Voce deve enviar alguma quantia");
+
+        // Pega o post
+        Post storage post = allPosts[_postId];
+
+        // --- A LÓGICA DA DOAÇÃO ---
+        // 1. Adiciona o valor ao total de doações do post
+        post.totalDonated += msg.value;
+
+        // 2. PEGA O ENDEREÇO DA ONG DONA DO POST
+        address _ngoOwner = post.ngoOwner;
+
+        // 3. TRANSFERE O DINHEIRO (msg.value) PARA A ONG
+        // 'payable(...)' converte o endereço para um tipo que pode receber ETH
+        (bool success, ) = payable(_ngoOwner).call{value: msg.value}("");
+        // Se a transferência falhar, 'require' reverte toda a transação
+        require(success, "Transferencia falhou");
+
+        emit PostDonated(_postId, msg.sender, msg.value);
+    }
 }
