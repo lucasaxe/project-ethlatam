@@ -7,6 +7,19 @@
   --animate-pulse-fast: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* --- Paleta de Cores 'Make it Happen' --- */
+:root {
+  --color-primary-blue: #3A7DFF; /* Azul da sua logo */
+  --color-secondary-green: #A9D84C; /* Verde da sua logo */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #555;
+  --color-background-light: #f9fafb; /* Um cinza bem claro para o fundo */
+  --color-border: #e0e0e0;
+}
+/* ---------------------------------------- */
+
+/* ... O resto do seu globals.css continua abaixo ... */
+
 @plugin "daisyui" {
   themes:
     light,

@@ -1,0 +1,60 @@
+/* components/dashboard/Modal.module.css */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+  
+  .content {
+    background-color: white;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    overflow: hidden; 
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .header h2 {
+    margin: 0;
+    font-size: 1.3rem;
+    color: var(--color-primary-blue); /* Usa a cor global */
+    font-weight: 600;
+  }
+  
+  .closeButton {
+    background: none;
+    border: none;
+    font-size: 2.2rem;
+    line-height: 1;
+    color: #aaa;
+    cursor: pointer;
+    padding: 0;
+  }
+  .closeButton:hover {
+    color: #333;
+  }
+  
+  .body {
+    padding: 1.5rem;
+    overflow-y: auto; 
+  }
