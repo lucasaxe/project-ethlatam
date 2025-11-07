@@ -1,0 +1,114 @@
+[
+  {
+    "id": "post-1762477838592111111",
+    "ongName": "ong do freeza",
+    "ongDescription": "essa é a ong do kakakakkaka",
+    "ongTokens": 50,
+    "likes": 0,
+    "postTitle": "bbbbbbbbbbbbbbbbbbbb",
+    "imageUrl": "https://wallpapers.com/images/hd/goku-ergm6w7blfqhar4e.jpg",
+    "imageDescription": "aaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "createdAt": "2025-11-07T01:47:45.479Z"
+  },
+  {
+    "id": "post-176247783859211111",
+    "ongName": "ong do freeza",
+    "ongDescription": "essa é a ong do kakakakkaka",
+    "ongTokens": 50,
+    "likes": 0,
+    "postTitle": "freeeezaaaaa",
+    "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSW5cboZLTh_dB4FJL_0bz1jg_Q3QUodDoM1A&s",
+    "imageDescription": "aaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "createdAt": "2025-11-07T01:47:11.129Z"
+  },
+  {
+    "id": "post-17624778385921111",
+    "ongName": "ong do goku",
+    "ongDescription": "essa é a ong do goku",
+    "ongTokens": 50,
+    "likes": 0,
+    "postTitle": "ong do goku wassup",
+    "imageUrl": "https://t2.tudocdn.net/511030?w=708&h=444",
+    "imageDescription": "bing chilling",
+    "createdAt": "2025-11-07T01:46:11.032Z"
+  },
+  {
+    "id": "post-1762477838592111",
+    "ongName": "ENRICO PUCCI",
+    "ongDescription": "At the beginning of the match, Pucci has access to Whitesnake, his initial Stand. With it, Pucci has the ability to seal the opponent’s special moves by comboing into his HHA, or through his \"It's mine!\" command grab. Once he has done this, Pucci can make use of his \"I order you!\" projectile while in Stand Off",
+    "ongTokens": 1500,
+    "likes": 0,
+    "postTitle": "However, all of this is offset by major drawbacks. In general, Pucci is very momentum-focused: evolving his Stand (whether by chanting the \"14 Words\" or using his GHA)",
+    "imageUrl": "https://staticdelivery.nexusmods.com/mods/4767/images/headers/959_1700677952.jpg",
+    "imageDescription": "Pucci Normal has the anime color twice because I made a new color with eyelashes.",
+    "createdAt": "2025-11-07T01:29:51.996Z"
+  },
+  {
+    "id": "post-176247783859211",
+    "ongName": "Minha ONG Fantástica",
+    "ongDescription": "Nosso objetivo é conectar doadores a projetos incríveis na América Latina.",
+    "ongTokens": 1500,
+    "likes": 0,
+    "postTitle": "All-Star Battle R/Enrico Pucci (Final)",
+    "imageUrl": "https://wiki.gbl.gg/images/thumb/9/9a/JJASBR_Final_Pucci_Artwork.png/296px-JJASBR_Final_Pucci_Artwork.png",
+    "imageDescription": "This version of Enrico Pucci must invest time and patience throughout the match, but is rewarded with new forms that alter his moveset in various ways. ",
+    "createdAt": "2025-11-07T01:28:20.396Z"
+  },
+  {
+    "id": "post-17624778385921",
+    "ongName": "Minha ONG Fantástica",
+    "ongDescription": "Nosso objetivo é conectar doadores a projetos incríveis na América Latina.",
+    "ongTokens": 1500,
+    "likes": 0,
+    "postTitle": "Pucci estava certo, convença-me do contrário. ",
+    "imageUrl": "https://i.redd.it/stdu6pvn9ovb1.jpg",
+    "imageDescription": "Dentro do JoJoverse, eu de fato concordo que, em teoria, Made In Heaven e o Heaven Plan são uma coisa boa, o destino é absolutamente concreto. Saber disso e aceitar o inevitável é basicamente o mesmo que aceitar o fato de que você vai morrer, só que com maior certeza e capacidade de aproveitar o tempo que você realmente tem. No entanto, olhando de onde vem, DIO e Pucci, como eu descrevi aqui mostram que na realidade, DIO só queria mais poder, mais domínio e dominância sobre a humanidade, não aceitando verdadeiramente o que é o destino. ",
+    "createdAt": "2025-11-07T01:26:47.253Z"
+  },
+  {
+    "id": "post-1762477838592",
+    "title": "novo post novo",
+    "content": "esse é um novo post",
+    "createdAt": "2025-11-07T01:10:38.592Z",
+    "imageUrl": "blob:http://localhost:3000/d3710311-680d-457c-a1d9-8799cc546405",
+    "likes": 0
+  },
+  {
+    "id": "post-1762477756760",
+    "title": "novo post",
+    "content": "este é o novo post do site",
+    "createdAt": "2025-11-07T01:09:16.760Z",
+    "imageUrl": "https://placehold.co/1200x800/999/white?text=Sem+Imagem",
+    "likes": 0
+  },
+  {
+    "id": 1,
+    "ongName": "ONG Salve Vidas",
+    "ongDescription": "Resgatando animais de rua e cuidando da nossa comunidade local.",
+    "ongTokens": 25,
+    "likes": 128,
+    "postTitle": "Campanha de Cestas Básicas",
+    "imageUrl": "https://placehold.co/1200x800/A98B7F/white?text=Ação+Social+1",
+    "imageDescription": "Hoje foi um dia incrível! Entregamos 200 cestas básicas para a comunidade do Bairro Sol. Agradecemos a todos os doadores que tornaram isso possível. Cada doação se transforma em sorrisos!"
+  },
+  {
+    "id": 2,
+    "ongName": "Instituto Mar Limpo",
+    "ongDescription": "Limpando nossas praias e protegendo a vida marinha.",
+    "ongTokens": 42,
+    "likes": 432,
+    "postTitle": "Mutirão na Praia Central",
+    "imageUrl": "https://placehold.co/1200x800/7F96A9/white?text=Mutirão+de+Limpeza",
+    "imageDescription": "Mais de 50 voluntários se juntaram a nós neste fim de semana para o mutirão de limpeza na Praia Central. Retiramos 150kg de lixo plástico do oceano. Junte-se a nós na próxima!"
+  },
+  {
+    "id": 3,
+    "ongName": "EducaAção Brasil",
+    "ongDescription": "Levando educação e tecnologia para crianças carentes.",
+    "ongTokens": 99,
+    "likes": 89,
+    "postTitle": "Nova Sala de Informática",
+    "imageUrl": "https://placehold.co/1200x800/8B7FA9/white?text=Inauguração+da+Sala+de+Info",
+    "imageDescription": "Inauguramos nossa primeira sala de informática! 30 computadores novinhos para os alunos da Escola Municipal Aprender. O futuro começa aqui. Obrigado a todos os parceiros."
+  }
+]
