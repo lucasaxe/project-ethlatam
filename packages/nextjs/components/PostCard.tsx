@@ -1,31 +1,15 @@
-// /packages/nextjs/components/PostCard.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+// --- CORREÇÃO AQUI ---
+import { parseEther } from "viem";
 import { useAccount } from "wagmi";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
-
-// /packages/nextjs/components/PostCard.tsx
+// 'formatEther' foi removido
 
 // --- Tipagem para os Metadados (do IPFS/JSON) ---
 interface PostMetadata {
@@ -88,10 +72,13 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
   const queryClient = useQueryClient();
 
+  // --- NOVO ESTADO PARA O PREÇO DO ETH ---
+  const [ethPrice, setEthPrice] = useState(0);
+
   const [metadata, setMetadata] = useState<PostMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
 
-  const [donationAmount, setDonationAmount] = useState("1000"); // Placeholder value
+  const [donationAmount, setDonationAmount] = useState("5.00"); // Valor em USD
 
   const modalId = `donate-modal-${postId}`;
 
@@ -126,7 +113,23 @@ export const PostCard = ({ postId }: { postId: number }) => {
     contractName: "YourContract",
   });
 
-  // Hook to fetch OFF-CHAIN metadata (IPFS/JSON)
+  // --- useEffect ATUALIZADO (Busca na API local) ---
+  useEffect(() => {
+    // Busca o preço do ETH da nossa própria API (que chama o CoinGecko no servidor)
+    fetch("/api/eth-price") // <-- MUDANÇA AQUI
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.price) {
+          setEthPrice(data.price);
+        }
+      })
+      .catch(error => {
+        console.error("Erro ao buscar preço do ETH (API local):", error);
+        setEthPrice(0);
+      });
+  }, []); // Roda apenas uma vez
+
+  // Hook para buscar os metadados OFF-CHAIN (IPFS/JSON)
   useEffect(() => {
     if (onChainPostData && onChainPostData.contentUrl) {
       const httpUrl = ipfsToHttpGateway(onChainPostData.contentUrl);
@@ -172,14 +175,26 @@ export const PostCard = ({ postId }: { postId: number }) => {
    * @dev Called by the "Confirm" button INSIDE THE MODAL
    */
   const handleDonate = async () => {
-    if (isDonating || !donationAmount || BigInt(donationAmount) <= 0) {
-      toast.error("Please enter a valid amount in Wei (greater than zero).");
+    const amountUsd = parseFloat(donationAmount);
+
+    // Validação
+    if (isDonating || !amountUsd || amountUsd <= 0) {
+      toast.error("Por favor, insira um valor válido em USD.");
+      return;
+    }
+    if (ethPrice === 0) {
+      // Checa se o preço foi carregado
+      toast.error("Não foi possível buscar o preço do ETH. Tente novamente.");
       return;
     }
 
-    const toastId = toast.loading("Confirming donation in MetaMask...");
+    const toastId = toast.loading("Calculando valor e preparando transação...");
     try {
-      const valueInWei = BigInt(donationAmount);
+      // --- LÓGICA DE CONVERSÃO ---
+      const amountEth = amountUsd / ethPrice;
+      const valueInWei = parseEther(amountEth.toString());
+
+      toast.loading("Confirmando doação na MetaMask...", { id: toastId });
 
       await donateToPost({
         functionName: "donateToPost",
@@ -205,7 +220,7 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
   // --- Rendering ---
 
-  if (isLoadingOnChain || isLoadingMetadata || !onChainPostData || !metadata) {
+  if (isLoadingOnChain || isLoadingMetadata || !onChainPostData || !metadata || ethPrice === 0) {
     return (
       <section className="flex items-center justify-center w-full py-16 border-b border-base-300 min-h-[400px]">
         <span className="loading loading-spinner loading-md"></span>
@@ -218,6 +233,13 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
   const httpImageUrl = ipfsToHttpGateway(imageUrl);
 
+  // --- CÁLCULO DE VALOR EM ETH (PARA O MODAL) ---
+  let donationInEth = 0;
+  if (ethPrice > 0) {
+    donationInEth = parseFloat(donationAmount || "0") / ethPrice;
+  }
+  // --- FIM DO CÁLCULO ---
+
   return (
     <section key={postId} className="flex items-center justify-center w-full py-16 border-b border-base-300">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
@@ -227,7 +249,18 @@ export const PostCard = ({ postId }: { postId: number }) => {
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{ngoName}</h2>
           </div>
 
-          {/* NGO DESCRIPTION */}
+          <div className="flex items-center gap-2 w-full justify-start mb-4">
+            <span className="text-lg font-medium text-base-content/80">Reputação:</span>
+            <span className="text-2xl font-bold">{Number(ngoReputation)}</span>
+            <Image
+              src="/good-reputation-token.jpg"
+              alt="Ícone de Reputação"
+              width={38}
+              height={38}
+              className="rounded-full"
+            />
+          </div>
+
           <p className="text-base text-base-content/70 mb-8 w-full text-left">
             {imageDescription.substring(0, 100)}...
           </p>
@@ -303,21 +336,24 @@ export const PostCard = ({ postId }: { postId: number }) => {
           <h3 className="font-bold text-lg text-base-content">Make a Donation to:</h3>
           <p className="py-2 text-lime-600 font-semibold">{postTitle}</p>
 
-          {/* Input for Wei */}
           <div className="form-control w-full mt-4">
-            <label className="label" htmlFor={`wei-amount-${postId}`}>
-              <span className="label-text">Amount (in Wei)</span>
+            <label className="label" htmlFor={`usd-amount-${postId}`}>
+              <span className="label-text">Amount (USD)</span>
             </label>
-            <input
-              id={`wei-amount-${postId}`}
-              type="number"
-              value={donationAmount}
-              onChange={e => setDonationAmount(e.target.value)}
-              className="input input-bordered w-full"
-              placeholder="Ex: 1000"
-            />
+            <div className="join">
+              <span className="btn join-item no-animation pointer-events-none">$</span>
+              <input
+                id={`usd-amount-${postId}`}
+                type="number"
+                value={donationAmount}
+                onChange={e => setDonationAmount(e.target.value)}
+                className="input input-bordered w-full join-item"
+                placeholder="Ex: 5.00"
+              />
+              <span className="btn join-item no-animation pointer-events-none">USD</span>
+            </div>
             <label className="label">
-              <span className="label-text-alt">1 ETH = 1,000,000,000,000,000,000 Wei</span>
+              <span className="label-text-alt text-blue-600">Equivalente a: ~{donationInEth.toFixed(6)} ETH</span>
             </label>
           </div>
 
@@ -332,7 +368,7 @@ export const PostCard = ({ postId }: { postId: number }) => {
             <button
               className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90"
               onClick={handleDonate}
-              disabled={isDonating || !connectedAddress}
+              disabled={isDonating || !connectedAddress || !ethPrice}
             >
               {isDonating ? <span className="loading loading-spinner"></span> : "Confirm Donation"}
             </button>
