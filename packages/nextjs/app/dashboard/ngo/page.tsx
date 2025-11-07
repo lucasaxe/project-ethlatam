@@ -50,12 +50,12 @@ export default function OngDashboardPage() {
 
   const queryClient = useQueryClient();
 
-  // Chaves de Query
-  const ongQueryKey = ["scaffoldRead", "YourContract", "ngos", { args: [address] }];
+  // Query Keys (Chaves de Query)
+  const ngoQueryKey = ["scaffoldRead", "YourContract", "ngos", { args: [address] }];
   const postCountQueryKey = ["scaffoldRead", "YourContract", "getPostCount"];
   const ngoPostIdsKey = ["scaffoldRead", "YourContract", "getNgoPostIds", { args: [address] }];
 
-  // --- Hooks do Contrato ---
+  // --- Contract Hooks (Hooks do Contrato) ---
   const { data: onChainOngData, isLoading: isLoadingOng } = useScaffoldReadContract({
     contractName: "YourContract",
     functionName: "ngos",
@@ -101,7 +101,7 @@ export default function OngDashboardPage() {
     contractName: "YourContract",
   });
 
-  // Atualiza o estado da ONG (componente) quando os dados on-chain carregarem
+  // Updates the NGO state (component) when on-chain data loads (Atualiza o estado da ONG (componente) quando os dados on-chain carregarem)
   useEffect(() => {
     if (onChainOngData && onChainOngData[3]) {
       const totalEth = formatEther(onChainOngData[4]);
@@ -129,68 +129,68 @@ export default function OngDashboardPage() {
   }, [onChainOngData, address, isConnected, isLoadingOng, justRegistered, ethPrice]);
 
   /**
-   * Chamado para registrar a ONG
+   * Called to register the NGO (Chamado para registrar a ONG)
    */
   const handleRegister = async () => {
     if (!address || isRegistering) return;
 
-    const toastId = toast.loading("Confirmando registro na MetaMask...");
+    const toastId = toast.loading("Confirming registration in MetaMask...");
     try {
-      const defaultName = `ONG ${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+      const defaultName = `NGO ${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
       await registerNGO({
         functionName: "registerNGO",
         args: [defaultName],
       });
 
-      toast.success("ONG registrada! Bem-vindo.", { id: toastId });
+      toast.success("NGO registered! Welcome.", { id: toastId });
 
-      queryClient.invalidateQueries({ queryKey: ongQueryKey });
+      queryClient.invalidateQueries({ queryKey: ngoQueryKey });
 
       setJustRegistered(true);
     } catch (error: any) {
-      console.error("Erro ao registrar ONG:", error);
+      console.error("Error registering NGO:", error);
       if (error.message.includes("rejected")) {
-        toast.error("Transação rejeitada.", { id: toastId });
+        toast.error("Transaction rejected.", { id: toastId });
       } else {
-        toast.error("Falha ao registrar ONG.", { id: toastId });
+        toast.error("Failed to register NGO.", { id: toastId });
       }
     }
   };
 
   /**
-   * Chamado ao salvar o formulário de "Editar Dados da ONG"
+   * Called when saving the "Edit NGO Information" form (Chamado ao salvar o formulário de "Editar Dados da ONG")
    */
   const handleUpdateOng = async (formData: EditOngInput) => {
     if (isUpdatingName) return;
 
-    const toastId = toast.loading("Preparando transação...");
+    const toastId = toast.loading("Preparing transaction...");
     try {
       if (formData.name && formData.name !== ongData?.name) {
-        toast.loading("Atualizando nome na blockchain...", { id: toastId });
+        toast.loading("Updating name on the blockchain...", { id: toastId });
         await updateNGOName({
           functionName: "updateNGOName",
           args: [formData.name],
         });
-        toast.success("Nome da ONG atualizado!", { id: toastId });
+        toast.success("NGO name updated!", { id: toastId });
 
-        queryClient.invalidateQueries({ queryKey: ongQueryKey });
+        queryClient.invalidateQueries({ queryKey: ngoQueryKey });
       } else {
-        toast.success("Dados atualizados (simulado).", { id: toastId });
+        toast.success("Information updated (simulated).", { id: toastId });
       }
 
       setModalOpen(null);
     } catch (error: any) {
-      console.error("Erro ao atualizar nome da ONG:", error);
+      console.error("Error updating NGO name:", error);
       if (error.message.includes("rejected")) {
-        toast.error("Transação rejeitada.", { id: toastId });
+        toast.error("Transaction rejected.", { id: toastId });
       } else {
-        toast.error("Falha ao atualizar nome.", { id: toastId });
+        toast.error("Failed to update name.", { id: toastId });
       }
     }
   };
 
   /**
-   * Chamado ao criar um novo post
+   * Called when creating a new post (Chamado ao criar um novo post)
    */
   const handleCreatePost = async ({
     title,
@@ -206,19 +206,19 @@ export default function OngDashboardPage() {
     if (!ongData) return;
     if (isCreatingPost) return;
 
-    const toastId = toast.loading("Iniciando criação do post...");
+    const toastId = toast.loading("Starting post creation...");
 
     try {
       let finalImageUrl = imageUrl;
       const pinataJwt = process.env.NEXT_PUBLIC_PINATA_JWT;
 
       if (!pinataJwt) {
-        throw new Error("Chave JWT do Pinata não configurada no .env.local");
+        throw new Error("Pinata JWT key not configured in .env.local");
       }
 
-      // 1. Upload da Imagem
+      // 1. Image Upload (Upload da Imagem)
       if (imageFile) {
-        toast.loading("1/3 - Fazendo upload da imagem...", { id: toastId });
+        toast.loading("1/3 - Uploading image...", { id: toastId });
         const formData = new FormData();
         formData.append("file", imageFile);
 
@@ -228,16 +228,16 @@ export default function OngDashboardPage() {
           body: formData,
         });
         const resData = await res.json();
-        if (!res.ok) throw new Error(resData.error || "Falha no upload da imagem");
+        if (!res.ok) throw new Error(resData.error || "Image upload failed");
         finalImageUrl = `ipfs://${resData.IpfsHash}`;
       }
 
       if (!finalImageUrl) {
-        throw new Error("Nenhuma imagem fornecida (link ou arquivo).");
+        throw new Error("No image provided (link or file).");
       }
 
-      // 2. Upload dos Metadados (JSON)
-      toast.loading("2/3 - Fazendo upload dos metadados...", { id: toastId });
+      // 2. Metadata (JSON) Upload (Upload dos Metadados (JSON))
+      toast.loading("2/3 - Uploading metadata...", { id: toastId });
       const postMetadata = {
         postTitle: title,
         imageDescription: content,
@@ -254,63 +254,58 @@ export default function OngDashboardPage() {
         body: JSON.stringify(postMetadata),
       });
       const resData = await res.json();
-      if (!res.ok) throw new Error(resData.error || "Falha no upload dos metadados");
+      if (!res.ok) throw new Error(resData.error || "Metadata upload failed");
 
       const contentUrl = `ipfs://${resData.IpfsHash}`;
 
-      // 4. Chamada do Contrato
-      toast.loading("3/3 - Aguardando confirmação da MetaMask...", { id: toastId });
+      // 4. Contract Call (Chamada do Contrato)
+      toast.loading("3/3 - Awaiting MetaMask confirmation...", { id: toastId });
 
       await createPost({
         functionName: "createPost",
         args: [contentUrl],
       });
 
-      toast.success("Post criado com sucesso!", { id: toastId });
+      toast.success("Post created successfully!", { id: toastId });
       setModalOpen(null);
 
       queryClient.invalidateQueries({ queryKey: postCountQueryKey });
       queryClient.invalidateQueries({ queryKey: ngoPostIdsKey });
     } catch (error: any) {
-      console.error("Erro ao criar postagem:", error);
+      console.error("Error creating post:", error);
       if (error.message.includes("rejected")) {
-        toast.error("Transação rejeitada.", { id: toastId });
+        toast.error("Transaction rejected.", { id: toastId });
       } else {
-        toast.error(error.message || "Erro desconhecido", { id: toastId });
+        toast.error(error.message || "Unknown error", { id: toastId });
       }
     }
   };
 
-  // --- Renderização ---
+  // --- Rendering (Renderização) ---
   if (!isConnected) {
-    return <div className={styles.error}>Conecte sua carteira de ONG para acessar o Dashboard.</div>;
+    return <div className={styles.error}>Connect your NGO wallet to access the Dashboard.</div>;
   }
-  // Checa se o preço já carregou (se for 0, ainda está carregando ou falhou)
-  if (isLoading || isLoadingOng || ethPrice === 0) {
-    return <div className={styles.loading}>Carregando dados da ONG...</div>;
+  if (isLoading || isLoadingOng) {
+    return <div className={styles.loading}>Loading NGO data...</div>;
   }
   if (!address) {
-    return (
-      <div className={styles.error}>Não foi possível carregar os dados. Verifique sua conexão e tente novamente.</div>
-    );
+    return <div className={styles.error}>Could not load data. Check your connection and try again.</div>;
   }
 
-  // --- LÓGICA DE ONBOARDING ---
+  // --- ONBOARDING LOGIC (LÓGICA DE ONBOARDING) ---
   if (!onChainOngData?.[3]) {
-    // onChainOngData[3] é 'isRegistered'
+    // onChainOngData[3] is 'isRegistered'
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] p-4">
         <div className="card w-full max-w-lg bg-base-100 shadow-xl">
           <div className="card-body items-center text-center">
             <SparklesIcon className="h-16 w-16 text-primary" />
-            <h2 className="card-title text-3xl">Bem-vindo(a) à Plataforma!</h2>
-            <p className="text-base-content/80 mt-4">
-              Sua carteira ({address}) ainda não está registrada como uma ONG.
-            </p>
-            <p className="text-base-content/80">Clique abaixo para se registrar na blockchain e começar a postar.</p>
+            <h2 className="card-title text-3xl">Welcome to the Platform!</h2>
+            <p className="text-base-content/80 mt-4">Your wallet ({address}) is not yet registered as an NGO.</p>
+            <p className="text-base-content/80">Click below to register on the blockchain and start posting.</p>
             <div className="card-actions mt-6">
               <button onClick={handleRegister} className="btn btn-primary btn-lg" disabled={isRegistering}>
-                {isRegistering ? <span className="loading loading-spinner"></span> : "Registrar-se como ONG"}
+                {isRegistering ? <span className="loading loading-spinner"></span> : "Register as NGO"}
               </button>
             </div>
           </div>
@@ -320,10 +315,10 @@ export default function OngDashboardPage() {
   }
 
   if (!ongData) {
-    return <div className={styles.loading}>Carregando dados da ONG...</div>;
+    return <div className={styles.loading}>Loading NGO data...</div>;
   }
 
-  // --- RENDERIZAÇÃO DO DASHBOARD NORMAL ---
+  // --- NORMAL DASHBOARD RENDERING (RENDERIZAÇÃO DO DASHBOARD NORMAL) ---
   const postIdsToShow = ngoPostIds ? ngoPostIds.map(id => Number(id)).reverse() : [];
 
   return (
@@ -332,23 +327,23 @@ export default function OngDashboardPage() {
         <h1>Dashboard: {ongData.name}</h1>
         <div className={styles.actions}>
           <button onClick={() => setModalOpen("create-post")} className={styles.buttonPrimary}>
-            Criar Postagem
+            Create Post
           </button>
           <button onClick={() => setModalOpen("edit-ong")} className={styles.buttonSecondary}>
-            Alterar Dados
+            Edit Information
           </button>
         </div>
       </header>
 
       <section className={styles.section}>
-        <h2>Informações da Organização</h2>
+        <h2>Organization Information</h2>
         <div className={styles.metricsGrid}>
           <div className={styles.metricBox}>
-            <strong>Tokens de Reputação</strong>
+            <strong>Reputation Tokens</strong>
             <div className={styles.tokenDisplay}>
               <span>{ongData.reputationTokens.toLocaleString("pt-BR")}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
+              <img src="/good-reputation-token.jpg" alt="Reputation Token" className={styles.tokenIcon} />
             </div>
           </div>
           <div className={styles.metricBox}>
@@ -359,17 +354,17 @@ export default function OngDashboardPage() {
 
         <div className={styles.infoGrid}>
           <div className={styles.infoBox}>
-            <strong>Carteira:</strong>
+            <strong>Wallet:</strong>
             <span>{address}</span>
           </div>
         </div>
       </section>
 
       <section className={styles.section}>
-        <h2>Suas Postagens</h2>
+        <h2>Your Posts</h2>
         <div className="flex flex-col gap-4 mt-4">
           {postIdsToShow.length === 0 ? (
-            <p className="text-base-content/70">Você ainda não criou nenhuma postagem.</p>
+            <p className="text-base-content/70">Your wallet ({address}) isn&apos;t yet registered as an NGO.</p>
           ) : (
             postIdsToShow.map(id => <DashboardPostItem key={id} postId={id} />)
           )}
@@ -379,7 +374,7 @@ export default function OngDashboardPage() {
       <Modal
         isOpen={modalOpen !== null}
         onClose={() => setModalOpen(null)}
-        title={modalOpen === "edit-ong" ? "Alterar Dados da ONG" : "Criar Nova Postagem"}
+        title={modalOpen === "edit-ong" ? "Edit NGO Information" : "Create New Post"}
       >
         {modalOpen === "edit-ong" && ongData && (
           <EditOngForm currentData={ongData} onSave={handleUpdateOng} onCancel={() => setModalOpen(null)} />

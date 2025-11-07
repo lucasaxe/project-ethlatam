@@ -319,9 +319,9 @@ const LandingPage: NextPage = () => {
                         <span className="text-lg font-medium text-gray-700">Reputation:</span>
                         <span className="text-2xl font-bold ml-2">{post.ongTokens}</span>
                       </div>
-                      <div className="w-17 h-16 rounded-full overflow-hidden">
+                      <div className="w-12 h-12 rounded-full overflow-hidden">
                         <img
-                          src="/token.png"
+                          src="/good-reputation-token.jpg"
                           alt="Reputation Token"
                           className="w-full h-full object-cover"
                           style={{ transform: "scale(1.2)" }}
@@ -335,7 +335,7 @@ const LandingPage: NextPage = () => {
 
                   <div className="flex justify-center w-full">
                     <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
-                      Doar para ONG
+                      Donate to NGO
                     </button>
                   </div>
                 </div>
