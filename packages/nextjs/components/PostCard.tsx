@@ -2,8 +2,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+// <--- ADICIONADO PELA MUDANÇA VISUAL
 import { useAccount } from "wagmi";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
@@ -52,25 +54,8 @@ const HeartIcon = ({ filled, ...props }: { filled: boolean; [key: string]: any }
   </svg>
 );
 
-const TokenIcon = (props: { [key: string]: any }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    {/* ... (código do ícone) ... */}
-    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"></circle>
-      <path
-        d="M14 8C14 6.89543 13.1046 6 12 6C10.8954 6 10 6.89543 10 8C10 9.10457 10.8954 10 12 10C13.1046 10 14 9.10457 14 8ZM14 8V16C14 17.1046 13.1046 18 12 18C10.8954 18 10 17.1046 10 16V8ZM14 8ZM10 16C10 17.1046 10.8954 18 12 18C13.1046 18 14 17.1046 14 16C14 14.8954 13.1046 14 12 14C10.8954 14 10 14.8954 10 12C10 10.8954 10.8954 10 12 10Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      ></path>
-    </g>
-  </svg>
-);
+// --- Ícone do Token (REMOVIDO) ---
+// const TokenIcon = ... (Este SVG foi removido pois será substituído pelo next/image)
 
 /**
  * @dev Converte uma URL 'ipfs://' para uma URL HTTP (usando 'ipfs.io' que funcionou no Chrome)
@@ -111,7 +96,6 @@ export const PostCard = ({ postId }: { postId: number }) => {
     contractName: "YourContract",
     functionName: "hasLiked",
     args: [BigInt(postId), connectedAddress],
-    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
     query: {
       enabled: !!connectedAddress,
     },
@@ -227,11 +211,24 @@ export const PostCard = ({ postId }: { postId: number }) => {
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-4">
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{ngoName}</h2>
           </div>
+
+          {/* --- AQUI ESTÁ A MUDANÇA VISUAL DO SEU AMIGO --- */}
           <div className="flex items-center gap-2 w-full justify-start mb-4">
-            <TokenIcon className="w-7 h-7 text-blue-500" />
+            {/* TEXTO PRIMEIRO */}
             <span className="text-lg font-medium text-base-content/80">Reputação:</span>
             <span className="text-2xl font-bold">{Number(ngoReputation)}</span>
+
+            {/* IMAGEM DEPOIS (do next/image) */}
+            <Image
+              src="/good-reputation-token.jpg" // Nome da imagem na pasta 'public'
+              alt="Ícone de Reputação"
+              width={38}
+              height={38}
+              className="rounded-full"
+            />
           </div>
+          {/* --- FIM DA MUDANÇA VISUAL --- */}
+
           <p className="text-base text-base-content/70 mb-8 w-full text-left">
             {imageDescription.substring(0, 100)}...
           </p>
@@ -333,4 +330,4 @@ export const PostCard = ({ postId }: { postId: number }) => {
   );
 };
 
-// <-- Linha em branco adicionada para o Prettier
+//
