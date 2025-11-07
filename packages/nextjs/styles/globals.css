@@ -112,10 +112,10 @@
   }
 }
 
-:root,
-[data-theme] {
-  background: var(--color-base-100);
-}
+/* CORREÇÃO AQUI: 
+  O bloco de código ':root, [data-theme]' que estava aqui foi REMOVIDO 
+  porque estava travando o background.
+*/
 
 .btn {
   @apply shadow-md;
