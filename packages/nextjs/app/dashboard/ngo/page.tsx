@@ -1,4 +1,4 @@
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -10,55 +10,41 @@ import { EditOngInput, OngData } from "../../lib/types";
 import styles from "./Dashboard.module.css";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
+import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
-
-// /packages/nextjs/app/dashboard/ong/page.tsx
+// A importação do useNativeCurrencyPrice foi removida
 
 export default function OngDashboardPage() {
   const [modalOpen, setModalOpen] = useState<"edit-ong" | "create-post" | null>(null);
   const [ongData, setOngData] = useState<OngData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [justRegistered, setJustRegistered] = useState(false);
+
+  // --- NOVO ESTADO PARA O PREÇO DO ETH ---
+  const [ethPrice, setEthPrice] = useState(0);
 
   const { address, isConnected } = useAccount();
 
@@ -74,22 +60,35 @@ export default function OngDashboardPage() {
     contractName: "YourContract",
     functionName: "ngos",
     args: [address],
-    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
     query: {
       enabled: isConnected && !!address,
     },
   });
 
-  // Busca a LISTA de IDs de posts que esta ONG criou
   const { data: ngoPostIds } = useScaffoldReadContract({
     contractName: "YourContract",
     functionName: "getNgoPostIds",
     args: [address],
-    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
     query: {
       enabled: isConnected && !!address,
     },
   });
+
+  // --- useEffect ATUALIZADO (Busca na API local) ---
+  useEffect(() => {
+    // Busca o preço do ETH da nossa própria API (que chama o CoinGecko no servidor)
+    fetch("/api/eth-price") // <-- MUDANÇA AQUI
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.price) {
+          setEthPrice(data.price);
+        }
+      })
+      .catch(error => {
+        console.error("Erro ao buscar preço do ETH (API local):", error);
+        setEthPrice(0);
+      });
+  }, []); // Roda apenas uma vez
 
   // Hooks de Escrita
   const { writeContractAsync: createPost, isPending: isCreatingPost } = useScaffoldWriteContract({
@@ -104,17 +103,19 @@ export default function OngDashboardPage() {
 
   // Atualiza o estado da ONG (componente) quando os dados on-chain carregarem
   useEffect(() => {
-    // onChainOngData[3] é 'isRegistered'
     if (onChainOngData && onChainOngData[3]) {
+      const totalEth = formatEther(onChainOngData[4]);
+      const totalUsd = parseFloat(totalEth) * (ethPrice || 0);
+
       setOngData({
         id: address || "",
         name: onChainOngData[0],
-        objective: "", // Adicionado valor padrão
+        objective: "",
         contactEmail: "",
         website: "",
         cnpj: "",
         reputationTokens: Number(onChainOngData[2]),
-        totalRaisedETH: 0.0,
+        totalRaisedETH: totalUsd,
       });
       setIsLoading(false);
 
@@ -125,7 +126,7 @@ export default function OngDashboardPage() {
     } else if (isConnected && address && !isLoadingOng) {
       setIsLoading(false);
     }
-  }, [onChainOngData, address, isConnected, isLoadingOng, justRegistered]);
+  }, [onChainOngData, address, isConnected, isLoadingOng, justRegistered, ethPrice]);
 
   /**
    * Chamado para registrar a ONG
@@ -284,7 +285,8 @@ export default function OngDashboardPage() {
   if (!isConnected) {
     return <div className={styles.error}>Conecte sua carteira de ONG para acessar o Dashboard.</div>;
   }
-  if (isLoading || isLoadingOng) {
+  // Checa se o preço já carregou (se for 0, ainda está carregando ou falhou)
+  if (isLoading || isLoadingOng || ethPrice === 0) {
     return <div className={styles.loading}>Carregando dados da ONG...</div>;
   }
   if (!address) {
@@ -350,8 +352,8 @@ export default function OngDashboardPage() {
             </div>
           </div>
           <div className={styles.metricBox}>
-            <strong>Total Arrecadado (ETH)</strong>
-            <span>{ongData.totalRaisedETH.toFixed(4)} ETH</span>
+            <strong>Total Arrecadado (USD)</strong>
+            <span>${ongData.totalRaisedETH.toFixed(2)} USD</span>
           </div>
         </div>
 
@@ -389,5 +391,3 @@ export default function OngDashboardPage() {
     </div>
   );
 }
-
-//

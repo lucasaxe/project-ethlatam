@@ -11,6 +11,7 @@ contract YourContract {
         address owner;
         uint256 reputation;
         bool isRegistered;
+        uint256 totalRaisedByNgo; // <-- 1. ADICIONADO AQUI
     }
 
     struct Post {
@@ -35,9 +36,6 @@ contract YourContract {
     mapping(address => NGO) public ngos;
     Post[] public allPosts;
     mapping(uint256 => mapping(address => bool)) public hasLiked;
-
-    // --- NOVO ARMAZENAMENTO ---
-    // Mapeia um endereço de ONG para uma lista (array) de IDs de posts que ela criou
     mapping(address => uint256[]) public ngoPosts;
 
     // --- Eventos ---
@@ -70,9 +68,6 @@ contract YourContract {
         });
     }
 
-    /**
-     * @dev [NOVA FUNÇÃO] Retorna todos os IDs de posts criados por uma ONG específica.
-     */
     function getNgoPostIds(address _ngoOwner) public view returns (uint256[] memory) {
         return ngoPosts[_ngoOwner];
     }
@@ -88,7 +83,8 @@ contract YourContract {
             name: _name,
             owner: _ngoOwner,
             reputation: 0,
-            isRegistered: true
+            isRegistered: true,
+            totalRaisedByNgo: 0 // <-- 2. INICIALIZADO AQUI
         });
 
         emit NGORegistered(_ngoOwner, _name);
@@ -116,9 +112,6 @@ contract YourContract {
         });
 
         allPosts.push(newPost);
-        
-        // --- NOVO REGISTRO ---
-        // Adiciona o ID deste post à lista de posts da ONG
         ngoPosts[_ngoOwner].push(_postId);
 
         emit PostCreated(_postId, _ngoOwner, _contentUrl);
@@ -146,6 +139,13 @@ contract YourContract {
         Post storage post = allPosts[_postId];
         post.totalDonated += msg.value;
         
+        // --- 3. ATUALIZAÇÃO DA LÓGICA DE DOAÇÃO ---
+        // Pega a ONG dona do post
+        NGO storage ngo = ngos[post.ngoOwner];
+        // Adiciona o valor ao total arrecadado pela ONG
+        ngo.totalRaisedByNgo += msg.value;
+
+        // Transfere o dinheiro para a ONG
         address _ngoOwner = post.ngoOwner;
         (bool success, ) = payable(_ngoOwner).call{value: msg.value}("");
         require(success, "Transferencia falhou");
