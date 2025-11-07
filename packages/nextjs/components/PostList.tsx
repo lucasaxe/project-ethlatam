@@ -2,6 +2,27 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
+
+// components/PostList.tsx
 
 // components/PostList.tsx
 
@@ -54,25 +75,6 @@ const HeartIcon = ({ filled, ...props }: { filled: boolean; [key: string]: any }
   </svg>
 );
 
-const TokenIcon = (props: { [key: string]: any }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"></circle>
-      <path
-        d="M14 8C14 6.89543 13.1046 6 12 6C10.8954 6 10 6.89543 10 8C10 9.10457 10.8954 10 12 10C13.1046 10 14 9.10457 14 8ZM14 8V16C14 17.1046 13.1046 18 12 18C10.8954 18 10 17.1046 10 16V8ZM14 8ZM10 16C10 17.1046 10.8954 18 12 18C13.1046 18 14 17.1046 14 16C14 14.8954 13.1046 14 12 14C10.8954 14 10 14.8954 10 12C10 10.8954 10.8954 10 12 10Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      ></path>
-    </g>
-  </svg>
-);
-
 // --- Componente PostCard (Adaptado para usar o tipo Post) ---
 const PostCard = ({ post }: { post: Post }) => {
   // O estado agora usa os valores iniciais do post
@@ -93,10 +95,20 @@ const PostCard = ({ post }: { post: Post }) => {
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{post.ongName}</h2>
           </div>
 
+          {/* --- AQUI ESTÁ A ORDEM CORRIGIDA --- */}
           <div className="flex items-center gap-2 w-full justify-start mb-4">
-            <TokenIcon className="w-7 h-7 text-blue-500" />
+            {/* TEXTO PRIMEIRO */}
             <span className="text-lg font-medium text-base-content/80">Reputação:</span>
             <span className="text-2xl font-bold">{post.ongTokens}</span>
+
+            {/* IMAGEM DEPOIS */}
+            <Image
+              src="/good-reputation-token.jpg" // Nome da imagem na pasta 'public'
+              alt="Ícone de Reputação"
+              width={38} // w-7 (7 * 4px = 28px)
+              height={38} // h-7 (7 * 4px = 28px)
+              className="rounded-full"
+            />
           </div>
 
           <p className="text-base text-base-content/70 mb-8 w-full text-left">{post.ongDescription}</p>
