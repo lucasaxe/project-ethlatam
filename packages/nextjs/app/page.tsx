@@ -20,7 +20,7 @@ const post = {
   ongDescription: "Rescuing street animals and caring for our local community.", // Traduzido
   ongTokens: 25,
   postTitle: "Food Basket Campaign", // Traduzido
-  imageUrl: "https://placehold.co/1200x800/A98B7F/white?text=Social%20Action%201", // Traduzido (placeholder)
+  imageUrl: "https://placehold.co/1200x800/A98B7F/white?text=Social+Action+1", // Traduzido (placeholder)
   imageDescription:
     "Today was an incredible day! We delivered 200 food baskets to the Bairro Sol community. We thank all the donors who made this possible. Every donation turns into smiles!", // Traduzido
 };
@@ -312,24 +312,21 @@ const LandingPage: NextPage = () => {
                 <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2">
                   <h3 className="text-2xl font-semibold text-lime-600 mb-2">[NGO Title]</h3>
                   <h2 className="text-3xl font-bold mb-10 text-blue-600">{post.ongName}</h2>
-                  <h1 className="text-1xl font-semibold mb-1 text-blue-600">[NGO description]</h1>
-                  <p className="text-base text-gray-700 mb-2">{post.ongDescription}</p>
 
-                  <div className="flex flex-col items-start gap-4">
-                    <div className="flex flex-row items-center justify-start gap-8 w-full md:w-auto">
-                      {/* Ícone e Número de Tokens */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold">{post.ongTokens}</span>
+                  <div className="flex flex-col items-center gap-4 mb-4">
+                    <div className="flex justify-between items-center w-full">
+                      <div>
+                        <span className="text-lg font-medium text-gray-700">Reputation:</span>
+                        <span className="text-2xl font-bold ml-2">{post.ongTokens}</span>
+                      </div>
+                      <div className="w-17 h-16 rounded-full overflow-hidden">
                         <img
-                          src="/good-reputation-token.jpg"
-                          alt="Token de Reputação"
-                          className="w-15 h-15 rounded-full shadow-sm"
+                          src="/token.png"
+                          alt="Reputation Token"
+                          className="w-full h-full object-cover"
+                          style={{ transform: "scale(1.2)" }}
                         />
                       </div>
-                      {/* Botão DOAR maior */}
-                      <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
-                        DONATE {/* Traduzido */}
-                      </button>
                     </div>
                   </div>
 
@@ -375,7 +372,7 @@ const LandingPage: NextPage = () => {
                       <HeartIcon filled={liked} className={liked ? "text-lime-500" : "text-gray-400"} />
                     </button>{" "}
                     {/* A nova contagem */}
-                    <span className="text-xl font-bold text-gray-700">{likeCount}</span>
+                    <span className="text-xl font-bold text-black">{likeCount}</span>
                   </div>
                 </div>
               </div>
