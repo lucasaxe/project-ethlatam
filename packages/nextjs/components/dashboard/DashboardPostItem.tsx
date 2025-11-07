@@ -24,6 +24,26 @@ import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 // /packages/nextjs/components/dashboard/DashboardPostItem.tsx
 
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
+// /packages/nextjs/components/dashboard/DashboardPostItem.tsx
+
 // Tipagem dos Metadados (do IPFS)
 interface PostMetadata {
   postTitle: string;
@@ -96,7 +116,7 @@ export const DashboardPostItem = ({ postId }: { postId: number }) => {
       <div className="flex-1 overflow-hidden">
         <h4 className="font-semibold text-base-content truncate">{postTitle}</h4>
         <p className="text-sm text-base-content/70">
-          {BigInt(likeCount).toString()} {BigInt(likeCount) === 1n ? "Curtida" : "Curtidas"}
+          {BigInt(likeCount).toString()} {BigInt(likeCount) === 1n ? "Likes" : "Likes"}
         </p>
       </div>
     </article>
