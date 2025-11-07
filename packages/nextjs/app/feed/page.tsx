@@ -26,6 +26,26 @@ import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 // /packages/nextjs/app/home/page.tsx
 
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
 const HomePage: NextPage = () => {
   const { data: postCount, isLoading: isLoadingCount } = useScaffoldReadContract({
     contractName: "YourContract",

@@ -397,7 +397,8 @@ const LandingPage: NextPage = () => {
                 }}
                 onMouseEnter={() => setIsUserCtaHover(true)}
                 onMouseLeave={() => setIsUserCtaHover(false)}
-                onClick={() => handleConnect("/home")}
+                // --- ALTERAÇÃO AQUI ---
+                onClick={() => handleConnect("/feed")}
               >
                 USER
               </button>
@@ -409,7 +410,8 @@ const LandingPage: NextPage = () => {
                 }}
                 onMouseEnter={() => setIsNgoCtaHover(true)}
                 onMouseLeave={() => setIsNgoCtaHover(false)}
-                onClick={() => handleConnect("/dashboard/ong")}
+                // --- ALTERAÇÃO AQUI ---
+                onClick={() => handleConnect("/dashboard/ngo")}
               >
                 NGO
               </button>

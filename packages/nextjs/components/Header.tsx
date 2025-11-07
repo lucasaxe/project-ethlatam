@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hardhat } from "viem/chains";
-import { Bars3Icon, BugAntIcon } from "@heroicons/react/24/outline";
+import { Bars3Icon } from "@heroicons/react/24/outline";
+// BugAntIcon foi removido pois não é mais usado
 import { FaucetButton, RainbowKitCustomConnectButton } from "~~/components/scaffold-eth";
 import { useOutsideClick, useTargetNetwork } from "~~/hooks/scaffold-eth";
 
@@ -15,17 +16,21 @@ type HeaderMenuLink = {
   icon?: React.ReactNode;
 };
 
+// --- ALTERAÇÕES AQUI ---
+// 1. O 'href' do Home foi mudado para "/"
+// 2. O "Debug Contracts" foi removido.
 export const menuLinks: HeaderMenuLink[] = [
   {
     label: "Home",
-    href: "/home",
+    href: "/",
   },
-  {
-    label: "Debug Contracts",
-    href: "/debug",
-    icon: <BugAntIcon className="h-4 w-4" />,
-  },
+  // {
+  //   label: "Debug Contracts",
+  //   href: "/debug",
+  //   icon: <BugAntIcon className="h-4 w-4" />,
+  // },
 ];
+// --- FIM DAS ALTERAÇÕES ---
 
 export const HeaderMenuLinks = () => {
   const pathname = usePathname();
@@ -81,15 +86,22 @@ export const Header = () => {
             <HeaderMenuLinks />
           </ul>
         </details>
+
+        {/* --- ALTERAÇÃO AQUI --- */}
+        {/* O logo e texto do Scaffold-ETH foram substituídos pelo seu logo */}
         <Link href="/" passHref className="hidden lg:flex items-center gap-2 ml-4 mr-6 shrink-0">
-          <div className="flex relative w-10 h-10">
-            <Image alt="SE2 logo" className="cursor-pointer" fill src="/logo.svg" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">Scaffold-ETH</span>
-            <span className="text-xs">Ethereum dev stack</span>
+          <div className="flex relative">
+            <Image
+              alt="MIH logo"
+              className="cursor-pointer"
+              src="/MIH_logo.png" // Busca o logo na pasta /public
+              width={140} // Ajuste a largura/altura conforme o logo
+              height={35}
+            />
           </div>
         </Link>
+        {/* --- FIM DA ALTERAÇÃO --- */}
+
         <ul className="hidden lg:flex lg:flex-nowrap menu menu-horizontal px-1 gap-2">
           <HeaderMenuLinks />
         </ul>
