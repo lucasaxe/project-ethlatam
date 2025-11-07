@@ -46,6 +46,26 @@ import { useScaffoldReadContract } from "~~/hooks/scaffold-eth";
 
 // /packages/nextjs/app/home/page.tsx
 
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
+// /packages/nextjs/app/home/page.tsx
+
 const HomePage: NextPage = () => {
   const { data: postCount, isLoading: isLoadingCount } = useScaffoldReadContract({
     contractName: "YourContract",
@@ -65,7 +85,7 @@ const HomePage: NextPage = () => {
   if (totalPosts === 0) {
     return (
       <div className="flex justify-center items-center mt-20">
-        <p className="text-xl">Nenhum post encontrado. Crie um no Dashboard!</p>
+        <p className="text-xl">No posts found. Create one in the Dashboard!</p>
       </div>
     );
   }
