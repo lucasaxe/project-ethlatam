@@ -20,29 +20,10 @@ const post = {
   ongDescription: "Rescuing street animals and caring for our local community.", // Traduzido
   ongTokens: 25,
   postTitle: "Food Basket Campaign", // Traduzido
-  imageUrl: "https://placehold.co/1200x800/A98B7F/white?text=Social+Action+1", // Traduzido (placeholder)
+  imageUrl: "https://placehold.co/1200x800/A98B7F/white?text=Social%20Action%201", // Traduzido (placeholder)
   imageDescription:
     "Today was an incredible day! We delivered 200 food baskets to the Bairro Sol community. We thank all the donors who made this possible. Every donation turns into smiles!", // Traduzido
 };
-
-const TokenIcon = (props: { [key: string]: any }) => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
-    <g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g>
-    <g id="SVGRepo_iconCarrier">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5"></circle>
-      <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="1.5"></circle>
-      <path
-        d="M14 8C14 6.89543 13.1046 6 12 6C10.8954 6 10 6.89543 10 8C10 9.10457 10.8954 10 12 10C13.1046 10 14 9.10457 14 8ZM14 8V16C14 17.1046 13.1046 18 12 18C10.8954 18 10 17.1046 10 16V8ZM14 8ZM10 16C10 17.1046 10.8954 18 12 18C13.1046 18 14 17.1046 14 16C14 14.8954 13.1046 14 12 14C10.8954 14 10 14.8954 10 16ZM14 8ZM10 16ZM12 10C13.1046 10 14 10.8954 14 12C14 13.1046 13.1046 14 12 14C10.8954 14 10 13.1046 10 12C10 10.8954 10.8954 10 12 10Z"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      ></path>
-    </g>
-  </svg>
-);
 
 const HeartIcon = ({ filled, className }: { filled: boolean; className?: string }) => (
   <svg
@@ -331,12 +312,24 @@ const LandingPage: NextPage = () => {
                 <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2">
                   <h3 className="text-2xl font-semibold text-lime-600 mb-2">[NGO Title]</h3>
                   <h2 className="text-3xl font-bold mb-10 text-blue-600">{post.ongName}</h2>
+                  <h1 className="text-1xl font-semibold mb-1 text-blue-600">[NGO description]</h1>
+                  <p className="text-base text-gray-700 mb-2">{post.ongDescription}</p>
 
-                  <div className="flex flex-col items-center gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <TokenIcon className="w-7 h-7 text-blue-500" />
-                      <span className="text-lg font-medium text-gray-700">Reputação:</span>
-                      <span className="text-2xl font-bold">{post.ongTokens}</span>
+                  <div className="flex flex-col items-start gap-4">
+                    <div className="flex flex-row items-center justify-start gap-8 w-full md:w-auto">
+                      {/* Ícone e Número de Tokens */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl font-bold">{post.ongTokens}</span>
+                        <img
+                          src="/good-reputation-token.jpg"
+                          alt="Token de Reputação"
+                          className="w-15 h-15 rounded-full shadow-sm"
+                        />
+                      </div>
+                      {/* Botão DOAR maior */}
+                      <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
+                        DONATE {/* Traduzido */}
+                      </button>
                     </div>
                   </div>
 

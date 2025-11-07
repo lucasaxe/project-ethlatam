@@ -5,262 +5,29 @@
 import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 
 const deployedContracts = {
-  31337: {
-    YourContract: {
-      address: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      abi: [
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "address",
-              name: "ngoAddress",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "string",
-              name: "name",
-              type: "string",
-            },
-          ],
-          name: "NGORegistered",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "postId",
-              type: "uint256",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "ngoAddress",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "string",
-              name: "contentUrl",
-              type: "string",
-            },
-          ],
-          name: "PostCreated",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "postId",
-              type: "uint256",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "donator",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "uint256",
-              name: "amount",
-              type: "uint256",
-            },
-          ],
-          name: "PostDonated",
-          type: "event",
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: "uint256",
-              name: "postId",
-              type: "uint256",
-            },
-            {
-              indexed: true,
-              internalType: "address",
-              name: "liker",
-              type: "address",
-            },
-            {
-              indexed: false,
-              internalType: "uint256",
-              name: "newLikeCount",
-              type: "uint256",
-            },
-          ],
-          name: "PostLiked",
-          type: "event",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-          ],
-          name: "allPosts",
-          outputs: [
-            {
-              internalType: "uint256",
-              name: "postId",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "ngoOwner",
-              type: "address",
-            },
-            {
-              internalType: "string",
-              name: "contentUrl",
-              type: "string",
-            },
-            {
-              internalType: "uint256",
-              name: "likeCount",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "totalDonated",
-              type: "uint256",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "string",
-              name: "_contentUrl",
-              type: "string",
-            },
-          ],
-          name: "createPost",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "_postId",
-              type: "uint256",
-            },
-          ],
-          name: "donateToPost",
-          outputs: [],
-          stateMutability: "payable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
-          ],
-          name: "hasLiked",
-          outputs: [
-            {
-              internalType: "bool",
-              name: "",
-              type: "bool",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "_postId",
-              type: "uint256",
-            },
-          ],
-          name: "likePost",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "",
-              type: "address",
-            },
-          ],
-          name: "ngos",
-          outputs: [
-            {
-              internalType: "string",
-              name: "name",
-              type: "string",
-            },
-            {
-              internalType: "address",
-              name: "owner",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "reputation",
-              type: "uint256",
-            },
-            {
-              internalType: "bool",
-              name: "isRegistered",
-              type: "bool",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "string",
-              name: "_name",
-              type: "string",
-            },
-          ],
-          name: "registerNGO",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-      ],
-      inheritedFunctions: {},
-      deployedOnBlock: 1,
-    },
-  },
   84532: {
     YourContract: {
-      address: "0xC8501b28F495C6543434aF41ACA20cA497F7B259",
+      address: "0x666f8Fb0d0Bf148fe0b36D244989613B5Fdf7F69",
       abi: [
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "ngoAddress",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "string",
+              name: "newName",
+              type: "string",
+            },
+          ],
+          name: "NGOProfileUpdated",
+          type: "event",
+        },
         {
           anonymous: false,
           inputs: [
@@ -423,6 +190,94 @@ const deployedContracts = {
         {
           inputs: [
             {
+              internalType: "address",
+              name: "_ngoOwner",
+              type: "address",
+            },
+          ],
+          name: "getNgoPostIds",
+          outputs: [
+            {
+              internalType: "uint256[]",
+              name: "",
+              type: "uint256[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "getPostCount",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "_postId",
+              type: "uint256",
+            },
+          ],
+          name: "getPostDetails",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "uint256",
+                  name: "postId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "ngoOwner",
+                  type: "address",
+                },
+                {
+                  internalType: "string",
+                  name: "contentUrl",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "likeCount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "totalDonated",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "ngoName",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "ngoReputation",
+                  type: "uint256",
+                },
+              ],
+              internalType: "struct YourContract.PostWithNgoDetails",
+              name: "",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
               internalType: "uint256",
               name: "",
               type: "uint256",
@@ -455,6 +310,30 @@ const deployedContracts = {
           name: "likePost",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "ngoPosts",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -504,9 +383,22 @@ const deployedContracts = {
           stateMutability: "nonpayable",
           type: "function",
         },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_newName",
+              type: "string",
+            },
+          ],
+          name: "updateNGOName",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
       ],
       inheritedFunctions: {},
-      deployedOnBlock: 33341368,
+      deployedOnBlock: 33379615,
     },
   },
 } as const;

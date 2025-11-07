@@ -1,213 +1,308 @@
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import CreatePostForm from "../../../components/dashboard/CreatePostForm";
+import { DashboardPostItem } from "../../../components/dashboard/DashboardPostItem";
 import EditOngForm from "../../../components/dashboard/EditOngForm";
-// --- Imports usando o caminho relativo (../) ---
 import Modal from "../../../components/dashboard/Modal";
-// Corrigido para apontar para 'app/lib/types'
-import { EditOngInput, OngData, PostData } from "../../lib/types";
+import { EditOngInput, OngData } from "../../lib/types";
 import styles from "./Dashboard.module.css";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
+import { useAccount } from "wagmi";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
-
-// -------------------------------------------------
-
-// --- DADOS MOCKADOS ATUALIZADOS ---
-const MOCK_ONG_DATA: OngData = {
-  id: "ong-123-abc",
-  name: "Minha ONG Fantástica",
-  objective: "Nosso objetivo é conectar doadores a projetos incríveis na América Latina.",
-  contactEmail: "contato@ongfantastica.org",
-  website: "https.ongfantastica.org",
-  cnpj: "12.345.678/0001-99",
-  reputationTokens: 1500,
-  totalRaisedETH: 4.75,
-};
-
-const MOCK_POSTS_DATA: PostData[] = [
-  {
-    id: "post-1",
-    title: "Campanha do Agasalho 2025",
-    content:
-      "Coletamos 500 casacos! Este é um texto um pouco mais longo para preencher espaço e ver como o card se comporta com mais conteúdo.",
-    createdAt: "2025-10-30T10:00:00Z",
-    imageUrl: "/images/post-placeholder.jpg",
-    likes: 128,
-  },
-  {
-    id: "post-2",
-    title: "Voluntários para Causa Animal",
-    content: "Precisamos de ajuda no próximo fim de semana.",
-    createdAt: "2025-10-28T15:30:00Z",
-    likes: 74,
-  },
-];
-// --- FIM DOS DADOS MOCKADOS ---
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
 export default function OngDashboardPage() {
   const [modalOpen, setModalOpen] = useState<"edit-ong" | "create-post" | null>(null);
   const [ongData, setOngData] = useState<OngData | null>(null);
-  const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [justRegistered, setJustRegistered] = useState(false);
 
-  // --- PONTO DE CONEXÃO BACKEND (1) ---
+  const { address, isConnected } = useAccount();
+
+  const queryClient = useQueryClient();
+
+  // Chaves de Query
+  const ongQueryKey = ["scaffoldRead", "YourContract", "ngos", { args: [address] }];
+  const postCountQueryKey = ["scaffoldRead", "YourContract", "getPostCount"];
+  const ngoPostIdsKey = ["scaffoldRead", "YourContract", "getNgoPostIds", { args: [address] }];
+
+  // --- Hooks do Contrato ---
+  const { data: onChainOngData, isLoading: isLoadingOng } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "ngos",
+    args: [address],
+    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
+  // Busca a LISTA de IDs de posts que esta ONG criou
+  const { data: ngoPostIds } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "getNgoPostIds",
+    args: [address],
+    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
+
+  // Hooks de Escrita
+  const { writeContractAsync: createPost, isPending: isCreatingPost } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
+  const { writeContractAsync: registerNGO, isPending: isRegistering } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
+  const { writeContractAsync: updateNGOName, isPending: isUpdatingName } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
+
+  // Atualiza o estado da ONG (componente) quando os dados on-chain carregarem
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      try {
-        // ---- INÍCIO DA REQUISIÇÃO REAL (Substituir o mock) ----
-        /*
-        const ongResponse = await fetch('/api/ong/me');
-        if (!ongResponse.ok) throw new Error('Falha ao buscar dados da ONG');
-        const ongApiData: OngData = await ongResponse.json();
-
-        const postsResponse = await fetch('/api/ong/me/posts');
-        if (!postsResponse.ok) throw new Error('Falha ao buscar posts');
-        const postsApiData: PostData[] = await postsResponse.json();
-
-        setOngData(ongApiData);
-        setPosts(postsApiData);
-        */
-        // ---- FIM DA REQUISIÇÃO REAL ----
-
-        // ---- Início do Mock (Remover em produção) ----
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setOngData(MOCK_ONG_DATA);
-        setPosts(MOCK_POSTS_DATA);
-        // ---- Fim do Mock ----
-      } catch (error) {
-        console.error("Erro ao carregar dados do dashboard:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDashboardData();
-  }, []);
-
-  // --- PONTO DE CONEXÃO BACKEND (2) ---
-  const handleUpdateOng = async (formData: EditOngInput) => {
-    console.log("Enviando atualização da ONG:", formData);
-
-    // --- ESTA É A CORREÇÃO ---
-    // Garante que ongData não é nulo.
-    if (!ongData) return;
-    // --- FIM DA CORREÇÃO ---
-
-    try {
-      // ---- INÍCIO DA REQUISIÇÃO REAL (Substituir o mock) ----
-      /*
-      const response = await fetch(`/api/ong/${ongData.id}`, {
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+    // onChainOngData[3] é 'isRegistered'
+    if (onChainOngData && onChainOngData[3]) {
+      setOngData({
+        id: address || "",
+        name: onChainOngData[0],
+        objective: "", // Adicionado valor padrão
+        contactEmail: "",
+        website: "",
+        cnpj: "",
+        reputationTokens: Number(onChainOngData[2]),
+        totalRaisedETH: 0.0,
       });
-      if (!response.ok) throw new Error('Falha ao atualizar ONG');
-      const updatedOng: OngData = await response.json();
-      setOngData(updatedOng);
-      */
-      // ---- FIM DA REQUISIÇÃO REAL ----
+      setIsLoading(false);
 
-      // ---- Início do Mock (Remover em produção) ----
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const updatedOng: OngData = {
-        ...ongData, // Agora o TypeScript sabe que ongData não é nulo
-        ...formData,
-      };
-      setOngData(updatedOng);
-      // ---- FIM DO MOCK ----
+      if (justRegistered) {
+        setModalOpen("edit-ong");
+        setJustRegistered(false);
+      }
+    } else if (isConnected && address && !isLoadingOng) {
+      setIsLoading(false);
+    }
+  }, [onChainOngData, address, isConnected, isLoadingOng, justRegistered]);
 
-      setModalOpen(null);
-      console.log("ONG atualizada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao atualizar ONG:", error);
+  /**
+   * Chamado para registrar a ONG
+   */
+  const handleRegister = async () => {
+    if (!address || isRegistering) return;
+
+    const toastId = toast.loading("Confirmando registro na MetaMask...");
+    try {
+      const defaultName = `ONG ${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+      await registerNGO({
+        functionName: "registerNGO",
+        args: [defaultName],
+      });
+
+      toast.success("ONG registrada! Bem-vindo.", { id: toastId });
+
+      queryClient.invalidateQueries({ queryKey: ongQueryKey });
+
+      setJustRegistered(true);
+    } catch (error: any) {
+      console.error("Erro ao registrar ONG:", error);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error("Falha ao registrar ONG.", { id: toastId });
+      }
     }
   };
 
-  // --- PONTO DE CONEXÃO BACKEND (3) - ATUALIZADO PARA FILE UPLOAD ---
+  /**
+   * Chamado ao salvar o formulário de "Editar Dados da ONG"
+   */
+  const handleUpdateOng = async (formData: EditOngInput) => {
+    if (isUpdatingName) return;
+
+    const toastId = toast.loading("Preparando transação...");
+    try {
+      if (formData.name && formData.name !== ongData?.name) {
+        toast.loading("Atualizando nome na blockchain...", { id: toastId });
+        await updateNGOName({
+          functionName: "updateNGOName",
+          args: [formData.name],
+        });
+        toast.success("Nome da ONG atualizado!", { id: toastId });
+
+        queryClient.invalidateQueries({ queryKey: ongQueryKey });
+      } else {
+        toast.success("Dados atualizados (simulado).", { id: toastId });
+      }
+
+      setModalOpen(null);
+    } catch (error: any) {
+      console.error("Erro ao atualizar nome da ONG:", error);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error("Falha ao atualizar nome.", { id: toastId });
+      }
+    }
+  };
+
+  /**
+   * Chamado ao criar um novo post
+   */
   const handleCreatePost = async ({
     title,
     content,
     imageFile,
+    imageUrl,
   }: {
     title: string;
     content: string;
     imageFile: File | null;
+    imageUrl: string | null;
   }) => {
-    console.log("Enviando nova postagem com imagem...");
+    if (!ongData) return;
+    if (isCreatingPost) return;
+
+    const toastId = toast.loading("Iniciando criação do post...");
 
     try {
-      // ---- INÍCIO DA REQUISIÇÃO REAL (MUITO IMPORTANTE) ----
-      /*
-      // Para enviar arquivos, usamos 'FormData'.
-      // O backend deve aceitar 'multipart/form-data'.
-      
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      
-      if (imageFile) {
-        formData.append('image', imageFile); // 'image' é o nome do campo no backend
+      let finalImageUrl = imageUrl;
+      const pinataJwt = process.env.NEXT_PUBLIC_PINATA_JWT;
+
+      if (!pinataJwt) {
+        throw new Error("Chave JWT do Pinata não configurada no .env.local");
       }
-      
-      const response = await fetch('/api/posts', { // <-- Substituir URL
-        method: 'POST',
-        body: formData, // Envia o FormData (NÃO use headers 'Content-Type')
+
+      // 1. Upload da Imagem
+      if (imageFile) {
+        toast.loading("1/3 - Fazendo upload da imagem...", { id: toastId });
+        const formData = new FormData();
+        formData.append("file", imageFile);
+
+        const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${pinataJwt}` },
+          body: formData,
+        });
+        const resData = await res.json();
+        if (!res.ok) throw new Error(resData.error || "Falha no upload da imagem");
+        finalImageUrl = `ipfs://${resData.IpfsHash}`;
+      }
+
+      if (!finalImageUrl) {
+        throw new Error("Nenhuma imagem fornecida (link ou arquivo).");
+      }
+
+      // 2. Upload dos Metadados (JSON)
+      toast.loading("2/3 - Fazendo upload dos metadados...", { id: toastId });
+      const postMetadata = {
+        postTitle: title,
+        imageDescription: content,
+        imageUrl: finalImageUrl,
+        ongName: ongData.name,
+      };
+
+      const res = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${pinataJwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postMetadata),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Falha no upload dos metadados");
+
+      const contentUrl = `ipfs://${resData.IpfsHash}`;
+
+      // 4. Chamada do Contrato
+      toast.loading("3/3 - Aguardando confirmação da MetaMask...", { id: toastId });
+
+      await createPost({
+        functionName: "createPost",
+        args: [contentUrl],
       });
 
-      if (!response.ok) throw new Error('Falha ao criar postagem');
-
-      const newPost: PostData = await response.json();
-      setPosts([newPost, ...posts]);
-      */
-      // ---- FIM DA REQUISIÇÃO REAL ----
-
-      // ---- Início do Mock (Remover em produção) ----
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const newPost: PostData = {
-        id: `post-${Math.random()}`,
-        title,
-        content,
-        createdAt: new Date().toISOString(),
-        imageUrl: imageFile ? URL.createObjectURL(imageFile) : undefined,
-        likes: 0, // Novo post começa com 0 curtidas
-      };
-      setPosts([newPost, ...posts]);
-      // ---- Fim do Mock ----
-
+      toast.success("Post criado com sucesso!", { id: toastId });
       setModalOpen(null);
-      console.log("Postagem criada com sucesso!");
-    } catch (error) {
+
+      queryClient.invalidateQueries({ queryKey: postCountQueryKey });
+      queryClient.invalidateQueries({ queryKey: ngoPostIdsKey });
+    } catch (error: any) {
       console.error("Erro ao criar postagem:", error);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error(error.message || "Erro desconhecido", { id: toastId });
+      }
     }
   };
 
   // --- Renderização ---
-  if (isLoading) {
+  if (!isConnected) {
+    return <div className={styles.error}>Conecte sua carteira de ONG para acessar o Dashboard.</div>;
+  }
+  if (isLoading || isLoadingOng) {
     return <div className={styles.loading}>Carregando dados da ONG...</div>;
   }
-  if (!ongData) {
-    return <div className={styles.error}>Não foi possível carregar os dados.</div>;
+  if (!address) {
+    return (
+      <div className={styles.error}>Não foi possível carregar os dados. Verifique sua conexão e tente novamente.</div>
+    );
   }
+
+  // --- LÓGICA DE ONBOARDING ---
+  if (!onChainOngData?.[3]) {
+    // onChainOngData[3] é 'isRegistered'
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] p-4">
+        <div className="card w-full max-w-lg bg-base-100 shadow-xl">
+          <div className="card-body items-center text-center">
+            <SparklesIcon className="h-16 w-16 text-primary" />
+            <h2 className="card-title text-3xl">Bem-vindo(a) à Plataforma!</h2>
+            <p className="text-base-content/80 mt-4">
+              Sua carteira ({address}) ainda não está registrada como uma ONG.
+            </p>
+            <p className="text-base-content/80">Clique abaixo para se registrar na blockchain e começar a postar.</p>
+            <div className="card-actions mt-6">
+              <button onClick={handleRegister} className="btn btn-primary btn-lg" disabled={isRegistering}>
+                {isRegistering ? <span className="loading loading-spinner"></span> : "Registrar-se como ONG"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ongData) {
+    return <div className={styles.loading}>Carregando dados da ONG...</div>;
+  }
+
+  // --- RENDERIZAÇÃO DO DASHBOARD NORMAL ---
+  const postIdsToShow = ngoPostIds ? ngoPostIds.map(id => Number(id)).reverse() : [];
 
   return (
     <div className={styles.dashboardPage}>
@@ -223,7 +318,6 @@ export default function OngDashboardPage() {
         </div>
       </header>
 
-      {/* --- Seção de Informações --- */}
       <section className={styles.section}>
         <h2>Informações da Organização</h2>
         <div className={styles.metricsGrid}>
@@ -231,7 +325,8 @@ export default function OngDashboardPage() {
             <strong>Tokens de Reputação</strong>
             <div className={styles.tokenDisplay}>
               <span>{ongData.reputationTokens.toLocaleString("pt-BR")}</span>
-              <img src="/images/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
             </div>
           </div>
           <div className={styles.metricBox}>
@@ -242,57 +337,29 @@ export default function OngDashboardPage() {
 
         <div className={styles.infoGrid}>
           <div className={styles.infoBox}>
-            <strong>Email:</strong>
-            <span>{ongData.contactEmail}</span>
-          </div>
-          <div className={styles.infoBox}>
-            <strong>Website:</strong>
-            <span>{ongData.website || "Não informado"}</span>
-          </div>
-          <div className={styles.infoBox}>
-            <strong>CNPJ:</strong>
-            <span>{ongData.cnpj}</span>
-          </div>
-          <div className={`${styles.infoBox} ${styles.fullSpan}`}>
-            <strong>Objetivo:</strong>
-            <p>{ongData.objective}</p>
+            <strong>Carteira:</strong>
+            <span>{address}</span>
           </div>
         </div>
       </section>
 
-      {/* --- Seção de Postagens --- */}
       <section className={styles.section}>
-        <h2>Postagens Recentes</h2>
-        <div className={styles.postList}>
-          {posts.length === 0 ? (
-            <p>Nenhuma postagem criada ainda.</p>
+        <h2>Suas Postagens</h2>
+        <div className="flex flex-col gap-4 mt-4">
+          {postIdsToShow.length === 0 ? (
+            <p className="text-base-content/70">Você ainda não criou nenhuma postagem.</p>
           ) : (
-            posts.map(post => (
-              <article key={post.id} className={styles.postItem}>
-                {post.imageUrl && <img src={post.imageUrl} alt={post.title} className={styles.postImage} />}
-
-                <div className={styles.postContent}>
-                  <h3>{post.title}</h3>
-                  <p>{post.content}</p>
-
-                  <div className={styles.postFooter}>
-                    <span>Publicado em: {new Date(post.createdAt).toLocaleDateString()}</span>
-                    <span className={styles.postLikes}>♥ {post.likes.toLocaleString("pt-BR")}</span>
-                  </div>
-                </div>
-              </article>
-            ))
+            postIdsToShow.map(id => <DashboardPostItem key={id} postId={id} />)
           )}
         </div>
       </section>
 
-      {/* --- MODAL --- */}
       <Modal
         isOpen={modalOpen !== null}
         onClose={() => setModalOpen(null)}
         title={modalOpen === "edit-ong" ? "Alterar Dados da ONG" : "Criar Nova Postagem"}
       >
-        {modalOpen === "edit-ong" && (
+        {modalOpen === "edit-ong" && ongData && (
           <EditOngForm currentData={ongData} onSave={handleUpdateOng} onCancel={() => setModalOpen(null)} />
         )}
         {modalOpen === "create-post" && (
@@ -302,3 +369,5 @@ export default function OngDashboardPage() {
     </div>
   );
 }
+
+//
