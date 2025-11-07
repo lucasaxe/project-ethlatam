@@ -241,6 +241,20 @@ const LandingPage: NextPage = () => {
   const [isUserCtaHover, setIsUserCtaHover] = useState(false);
   const [isNgoCtaHover, setIsNgoCtaHover] = useState(false);
   const [liked, setLiked] = useState(false); // Para a Seção 2
+  const [likeCount, setLikeCount] = useState(12);
+
+  const handleLike = () => {
+    setLiked(prevLiked => {
+      const newLikedState = !prevLiked;
+
+      if (newLikedState) {
+        setLikeCount(prevCount => prevCount + 1);
+      } else {
+        setLikeCount(prevCount => prevCount - 1);
+      }
+      return newLikedState;
+    });
+  };
 
   useEffect(() => {
     if (isConnected && redirectPath) {
@@ -298,8 +312,10 @@ const LandingPage: NextPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
                 {/* Coluna 1: Informações da ONG e Ações (na esquerda) */}
                 <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2">
-                  <h2 className="text-3xl font-bold mb-2 text-blue-600">{post.ongName}</h2>
-                  <p className="text-base text-base-content/70 mb-8">{post.ongDescription}</p>
+                  <h3 className="text-2xl font-semibold text-blue-600 mb-2">[NGO Title]</h3>
+                  <h2 className="text-3xl font-bold mb-10 text-blue-600">{post.ongName}</h2>
+                  <h1 className="text-1xl font-semibold mb-1 text-blue-600">[NGO description]</h1>
+                  <p className="text-base text-gray-700 mb-2">{post.ongDescription}</p>
 
                   <div className="flex flex-col items-start gap-4">
                     <div className="flex flex-row items-center justify-start gap-8 w-full md:w-auto">
@@ -329,21 +345,21 @@ const LandingPage: NextPage = () => {
 
                 {/* Coluna 3: Descrição da Imagem (na direita) */}
                 <div className="md:col-span-1 md:order-3 order-3 flex flex-col justify-start self-start">
-                  <h3 className="text-2xl font-semibold mb-3 text-lime-600">{post.postTitle}</h3>
-
-                  <p className="text-base-content/80 italic">{post.imageDescription}</p>
+                  <h4 className="text-2xl font-semibold text-lime-600 mb-2">[Post Title]</h4>
+                  <h3 className="text-2xl font-semibold mb-6 text-lime-600">{post.postTitle}</h3>
+                  <h2 className="text-1xl font-semibold mb-0 text-lime-600">[Post Description]</h2>
+                  <p className="text-gray-700 italic">{post.imageDescription}</p>
 
                   {/* Botão CURTIR (Ícone) maior */}
-                  <div className="mt-4">
-                    <button
-                      className="btn btn-ghost btn-circle btn-lg"
-                      onClick={() => setLiked(!liked)}
-                      aria-label="Like"
-                    >
-                      {" "}
-                      {/* Traduzido */}
-                      <HeartIcon filled={liked} className={liked ? "text-lime-500" : "text-base-content/70"} />
-                    </button>
+                  {/* Botão CURTIR e Contagem */}
+                  <div className="mt-4 flex items-center gap-2">
+                    {" "}
+                    {/* Envolve com flex */}
+                    <button className="btn btn-ghost btn-circle btn-lg" onClick={handleLike} aria-label="Like">
+                      <HeartIcon filled={liked} className={liked ? "text-lime-500" : "text-gray-400"} />
+                    </button>{" "}
+                    {/* A nova contagem */}
+                    <span className="text-xl font-bold text-gray-700">{likeCount}</span>
                   </div>
                 </div>
               </div>
