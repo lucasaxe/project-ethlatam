@@ -50,6 +50,7 @@ const mockPosts = [
     ongName: "ONG Salve Vidas",
     ongDescription: "Resgatando animais de rua e cuidando da nossa comunidade local.",
     ongTokens: 25,
+    likes: 128,
     postTitle: "Campanha de Cestas Básicas",
     imageUrl: "https://placehold.co/1200x800/A98B7F/white?text=Ação+Social+1",
     imageDescription:
@@ -60,6 +61,7 @@ const mockPosts = [
     ongName: "Instituto Mar Limpo",
     ongDescription: "Limpando nossas praias e protegendo a vida marinha.",
     ongTokens: 42,
+    likes: 432,
     postTitle: "Mutirão na Praia Central",
     imageUrl: "https://placehold.co/1200x800/7F96A9/white?text=Mutirão+de+Limpeza",
     imageDescription:
@@ -70,6 +72,7 @@ const mockPosts = [
     ongName: "EducaAção Brasil",
     ongDescription: "Levando educação e tecnologia para crianças carentes.",
     ongTokens: 99,
+    likes: 89,
     postTitle: "Nova Sala de Informática",
     imageUrl: "https://placehold.co/1200x800/8B7FA9/white?text=Inauguração+da+Sala+de+Info",
     imageDescription:
@@ -80,27 +83,41 @@ const mockPosts = [
 // --- Componente PostCard ---
 const PostCard = ({ post }: { post: (typeof mockPosts)[0] }) => {
   const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(post.likes);
+
+  const handleLike = () => {
+    setLiked(!liked);
+    setLikeCount(liked ? post.likes : post.likes + 1);
+  };
 
   return (
     <section className="flex items-center justify-center w-full py-16 border-b border-base-300">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
         {/* Coluna 1: Informações da ONG e Ações (na esquerda) */}
-        <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2">
-          <h2 className="text-3xl font-bold mb-2 text-blue-600">{post.ongName}</h2>
-          <p className="text-base text-base-content/70 mb-8">{post.ongDescription}</p>
+        {/* O container 'items-center' centraliza o bloco do título, o da descrição e o do botão */}
+        <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2 items-center">
+          {/* *** TÍTULO CENTRALIZADO *** */}
+          {/* Este bloco de título está centralizado pelo 'items-center' do pai E 'w-full text-center' */}
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-4">
+            <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{post.ongName}</h2>
+          </div>
 
-          <div className="flex flex-col items-start gap-4">
-            <div className="flex flex-row items-center justify-start gap-8 w-full md:w-auto">
-              {/* Ícone e Número de Tokens */}
-              <div className="flex items-center gap-2">
-                <TokenIcon className="w-8 h-8 text-blue-500" />
-                <span className="text-2xl font-bold">{post.ongTokens}</span>
-              </div>
-              {/* Botão DOAR maior */}
-              <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
-                DOAR
-              </button>
-            </div>
+          {/* *** TOKENS SEPARADOS E ALINHADOS À ESQUERDA *** */}
+          {/* Este 'w-full' e 'justify-start' alinha os tokens à esquerda da coluna */}
+          {/* *** 'items-center' alinha verticalmente o ícone, texto e número *** */}
+          <div className="flex items-center gap-2 w-full justify-start mb-4">
+            <TokenIcon className="w-7 h-7 text-blue-500" />
+            <span className="text-lg font-medium text-base-content/80">Reputação:</span>
+            <span className="text-2xl font-bold">{post.ongTokens}</span>
+          </div>
+
+          <p className="text-base text-base-content/70 mb-8 w-full text-left">{post.ongDescription}</p>
+
+          {/* Este bloco de botão está centralizado pelo 'justify-center' */}
+          <div className="flex justify-center w-full">
+            <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
+              DOAR PARA ONG
+            </button>
           </div>
         </div>
 
@@ -122,12 +139,12 @@ const PostCard = ({ post }: { post: (typeof mockPosts)[0] }) => {
 
           <p className="text-base-content/80 italic">{post.imageDescription}</p>
 
-          {/* Botão CURTIR (Ícone) maior */}
-          <div className="mt-4">
-            <button className="btn btn-ghost btn-circle btn-lg" onClick={() => setLiked(!liked)} aria-label="Curtir">
-              {/* *** Alterado: Cor do coração quando curtido *** */}
+          {/* Botão CURTIR com contador */}
+          <div className="mt-4 flex items-center gap-2">
+            <button className="btn btn-ghost btn-circle btn-lg" onClick={handleLike} aria-label="Curtir">
               <HeartIcon filled={liked} className={liked ? "text-lime-500" : "text-base-content/70"} />
             </button>
+            <span className="text-lg font-semibold text-base-content/80">{likeCount}</span>
           </div>
         </div>
       </div>
