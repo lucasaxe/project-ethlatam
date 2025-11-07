@@ -225,18 +225,33 @@ const LandingPage: NextPage = () => {
   const [isNgoCtaHover, setIsNgoCtaHover] = useState(false);
   const [liked, setLiked] = useState(false); // Para a Seção 2
   const [likeCount, setLikeCount] = useState(12);
+  const [isLiking, setisLiking] = useState(false);
+  const isInitialMount = useRef(true);
 
-  const handleLike = () => {
-    setLiked(prevLiked => {
-      const newLikedState = !prevLiked;
-
-      if (newLikedState) {
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+    } else {
+      // Atualiza a contagem com base no estado 'liked'
+      if (liked) {
         setLikeCount(prevCount => prevCount + 1);
       } else {
         setLikeCount(prevCount => prevCount - 1);
       }
-      return newLikedState;
-    });
+    }
+  }, [liked]);
+
+  const handleLike = () => {
+    if (isLiking) return;
+    setisLiking(true);
+
+    // Apenas alterna o estado 'liked'
+    setLiked(prevLiked => !prevLiked);
+
+    // Desativa o debounce após a animação
+    setTimeout(() => {
+      setisLiking(false);
+    }, 300);
   };
 
   useEffect(() => {
@@ -295,7 +310,7 @@ const LandingPage: NextPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
                 {/* Coluna 1: Informações da ONG e Ações (na esquerda) */}
                 <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2">
-                  <h3 className="text-2xl font-semibold text-blue-600 mb-2">[NGO Title]</h3>
+                  <h3 className="text-2xl font-semibold text-lime-600 mb-2">[NGO Title]</h3>
                   <h2 className="text-3xl font-bold mb-10 text-blue-600">{post.ongName}</h2>
                   <h1 className="text-1xl font-semibold mb-1 text-blue-600">[NGO description]</h1>
                   <p className="text-base text-gray-700 mb-2">{post.ongDescription}</p>
@@ -317,6 +332,15 @@ const LandingPage: NextPage = () => {
                       </button>
                     </div>
                   </div>
+
+                  <h1 className="text-1xl font-semibold mb-1 text-lime-600">[NGO description]</h1>
+                  <p className="text-base text-gray-700 mb-8">{post.ongDescription}</p>
+
+                  <div className="flex justify-center w-full">
+                    <button className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90">
+                      Doar para ONG
+                    </button>
+                  </div>
                 </div>
 
                 {/* Coluna 2: Imagem Principal (no centro) */}
@@ -333,7 +357,7 @@ const LandingPage: NextPage = () => {
                 {/* Coluna 3: Descrição da Imagem (na direita) */}
                 <div className="md:col-span-1 md:order-3 order-3 flex flex-col justify-start self-start">
                   <h4 className="text-2xl font-semibold text-lime-600 mb-2">[Post Title]</h4>
-                  <h3 className="text-2xl font-semibold mb-6 text-lime-600">{post.postTitle}</h3>
+                  <h3 className="text-2xl font-semibold mb-8 text-purple-600">{post.postTitle}</h3>
                   <h2 className="text-1xl font-semibold mb-0 text-lime-600">[Post Description]</h2>
                   <p className="text-gray-700 italic">{post.imageDescription}</p>
 
@@ -342,7 +366,12 @@ const LandingPage: NextPage = () => {
                   <div className="mt-4 flex items-center gap-2">
                     {" "}
                     {/* Envolve com flex */}
-                    <button className="btn btn-ghost btn-circle btn-lg" onClick={handleLike} aria-label="Like">
+                    <button
+                      className="btn btn-ghost btn-circle btn-lg"
+                      onClick={handleLike}
+                      aria-label="Like"
+                      disabled={isLiking}
+                    >
                       <HeartIcon filled={liked} className={liked ? "text-lime-500" : "text-gray-400"} />
                     </button>{" "}
                     {/* A nova contagem */}

@@ -11,7 +11,7 @@ export const metadata = getMetadata({
   description: "Built with Scaffold-ETH 2",
 });
 
-const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body className="bg-base-100">
@@ -29,6 +29,4 @@ const ScaffoldEthApp = ({ children }: { children: React.ReactNode }) => {
       </body>
     </html>
   );
-};
-
-export default ScaffoldEthApp;
+}
