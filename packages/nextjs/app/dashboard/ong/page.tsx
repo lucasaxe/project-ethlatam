@@ -1,14 +1,16 @@
 // app/dashboard/ong/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+// Importações de componentes (Ajuste o caminho se necessário)
 import CreatePostForm from "../../../components/dashboard/CreatePostForm";
 import EditOngForm from "../../../components/dashboard/EditOngForm";
-// --- Imports usando o caminho relativo (../) ---
 import Modal from "../../../components/dashboard/Modal";
-// Corrigido para apontar para 'app/lib/types'
 import { EditOngInput, OngData, PostData } from "../../lib/types";
+// Importando seus tipos
 import styles from "./Dashboard.module.css";
+// --- NOVO IMPORT WAGMI ---
+import { useAccount } from "wagmi";
 
 // app/dashboard/ong/page.tsx
 
@@ -30,20 +32,7 @@ import styles from "./Dashboard.module.css";
 
 // app/dashboard/ong/page.tsx
 
-// -------------------------------------------------
-
-// --- DADOS MOCKADOS ATUALIZADOS ---
-const MOCK_ONG_DATA: OngData = {
-  id: "ong-123-abc",
-  name: "Minha ONG Fantástica",
-  objective: "Nosso objetivo é conectar doadores a projetos incríveis na América Latina.",
-  contactEmail: "contato@ongfantastica.org",
-  website: "https.ongfantastica.org",
-  cnpj: "12.345.678/0001-99",
-  reputationTokens: 1500,
-  totalRaisedETH: 4.75,
-};
-
+// --- DADOS MOCKADOS/DEFAULT PARA POSTS ---
 const MOCK_POSTS_DATA: PostData[] = [
   {
     id: "post-1",
@@ -54,13 +43,6 @@ const MOCK_POSTS_DATA: PostData[] = [
     imageUrl: "/images/post-placeholder.jpg",
     likes: 128,
   },
-  {
-    id: "post-2",
-    title: "Voluntários para Causa Animal",
-    content: "Precisamos de ajuda no próximo fim de semana.",
-    createdAt: "2025-10-28T15:30:00Z",
-    likes: 74,
-  },
 ];
 // --- FIM DOS DADOS MOCKADOS ---
 
@@ -70,143 +52,164 @@ export default function OngDashboardPage() {
   const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // --- PONTO DE CONEXÃO BACKEND (1) ---
+  // OBTENDO O ENDEREÇO DA CARTEIRA
+  const { address, isConnected } = useAccount();
+
+  // Função para buscar DADOS DA ONG E POSTS
+  const fetchDashboardData = useCallback(async (currentAddress: string) => {
+    setIsLoading(true);
+    try {
+      // 1. BUSCA DADOS DA ONG PERSISTENTES USANDO O ENDEREÇO
+      const ongResponse = await fetch(`/api/ong-info?address=${currentAddress}`);
+      if (!ongResponse.ok) throw new Error("Falha ao buscar dados da ONG");
+      const ongApiData: OngData = await ongResponse.json();
+
+      // 2. BUSCA POSTS DA ONG
+      const postsResponse = await fetch("/posts-data.json");
+      // CORREÇÃO TS: Tipar como 'any[]' para o TypeScript não bloquear o 'filter'
+      const postsApiData: any[] = await postsResponse.json();
+
+      setOngData(ongApiData);
+
+      // CORREÇÃO TS: Filtrar e Mapear os dados
+      // O JSON salvo tem 'ongName', 'postTitle' e 'imageDescription'
+      // O componente espera 'id', 'title' e 'content'
+      const filteredAndMappedPosts = postsApiData
+        .filter(p => p.ongName === ongApiData.name) // Filtra pelo 'ongName' real
+        .map(p => ({
+          // Mapeia para o tipo 'PostData' que o componente espera
+          id: String(p.id),
+          title: p.postTitle, // De 'postTitle' para 'title'
+          content: p.imageDescription, // De 'imageDescription' para 'content'
+          createdAt: p.createdAt,
+          imageUrl: p.imageUrl,
+          likes: p.likes,
+        }));
+
+      setPosts(filteredAndMappedPosts);
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+      // Em caso de falha, tenta carregar um default para não travar
+      setOngData(
+        prev =>
+          prev || {
+            id: currentAddress,
+            name: "ONG Padrão Não Registrada",
+            objective: "Conecte a carteira para personalizar seu perfil.",
+            contactEmail: "",
+            website: "",
+            cnpj: "",
+            reputationTokens: 0,
+            totalRaisedETH: 0.0,
+          },
+      );
+      setPosts(MOCK_POSTS_DATA);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []); // Dependência vazia, pois 'address' é passado como argumento no useEffect
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setIsLoading(true);
-      try {
-        // ---- INÍCIO DA REQUISIÇÃO REAL (Substituir o mock) ----
-        /*
-        const ongResponse = await fetch('/api/ong/me');
-        if (!ongResponse.ok) throw new Error('Falha ao buscar dados da ONG');
-        const ongApiData: OngData = await ongResponse.json();
+    if (isConnected && address) {
+      fetchDashboardData(address); // Passa o address como argumento
+    } else {
+      setIsLoading(false);
+      setOngData(null);
+      setPosts([]); // Limpa os posts ao desconectar
+    }
+  }, [isConnected, address, fetchDashboardData]); // Depende apenas de address e isConnected
 
-        const postsResponse = await fetch('/api/ong/me/posts');
-        if (!postsResponse.ok) throw new Error('Falha ao buscar posts');
-        const postsApiData: PostData[] = await postsResponse.json();
-
-        setOngData(ongApiData);
-        setPosts(postsApiData);
-        */
-        // ---- FIM DA REQUISIÇÃO REAL ----
-
-        // ---- Início do Mock (Remover em produção) ----
-        await new Promise(resolve => setTimeout(resolve, 800));
-        setOngData(MOCK_ONG_DATA);
-        setPosts(MOCK_POSTS_DATA);
-        // ---- Fim do Mock ----
-      } catch (error) {
-        console.error("Erro ao carregar dados do dashboard:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchDashboardData();
-  }, []);
-
-  // --- PONTO DE CONEXÃO BACKEND (2) ---
+  // --- PONTO DE CONEXÃO BACKEND (2) - Update ONG (Persistência) ---
   const handleUpdateOng = async (formData: EditOngInput) => {
-    console.log("Enviando atualização da ONG:", formData);
-
-    // --- ESTA É A CORREÇÃO ---
-    // Garante que ongData não é nulo.
-    if (!ongData) return;
-    // --- FIM DA CORREÇÃO ---
+    if (!ongData || !address) return;
+    setIsLoading(true);
 
     try {
-      // ---- INÍCIO DA REQUISIÇÃO REAL (Substituir o mock) ----
-      /*
-      const response = await fetch(`/api/ong/${ongData.id}`, {
-        method: 'PUT', 
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+      // 1. CHAMA A NOVA ROTA PUT para salvar os dados no profiles.json
+      const response = await fetch(`/api/ong-info`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        // Envia o endereço no corpo para o servidor saber qual perfil atualizar
+        body: JSON.stringify({ ...formData, address }),
       });
-      if (!response.ok) throw new Error('Falha ao atualizar ONG');
-      const updatedOng: OngData = await response.json();
-      setOngData(updatedOng);
-      */
-      // ---- FIM DA REQUISIÇÃO REAL ----
+      if (!response.ok) throw new Error("Falha ao atualizar ONG");
 
-      // ---- Início do Mock (Remover em produção) ----
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const updatedOng: OngData = {
-        ...ongData, // Agora o TypeScript sabe que ongData não é nulo
-        ...formData,
-      };
-      setOngData(updatedOng);
-      // ---- FIM DO MOCK ----
+      const updatedOng: OngData = await response.json();
+      setOngData(updatedOng); // Atualiza o estado com os dados salvos
 
       setModalOpen(null);
-      console.log("ONG atualizada com sucesso!");
     } catch (error) {
       console.error("Erro ao atualizar ONG:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // --- PONTO DE CONEXÃO BACKEND (3) - ATUALIZADO PARA FILE UPLOAD ---
+  // --- PONTO DE CONEXÃO BACKEND (3) - CRIAÇÃO DE POST ---
   const handleCreatePost = async ({
     title,
     content,
     imageFile,
+    imageUrl,
   }: {
     title: string;
     content: string;
     imageFile: File | null;
+    imageUrl: string | null;
   }) => {
-    console.log("Enviando nova postagem com imagem...");
+    if (!ongData) return;
+    setIsLoading(true);
 
     try {
-      // ---- INÍCIO DA REQUISIÇÃO REAL (MUITO IMPORTANTE) ----
-      /*
-      // Para enviar arquivos, usamos 'FormData'.
-      // O backend deve aceitar 'multipart/form-data'.
-      
+      // Cria o FormData para enviar os dados
       const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      
+      formData.append("postTitle", title);
+      formData.append("imageDescription", content);
+
+      // Dados da ONG (Puxados do estado salvo)
+      formData.append("ongName", ongData.name);
+      formData.append("ongDescription", ongData.objective);
+      formData.append("ongTokens", String(ongData.reputationTokens));
+
+      // Arquivo ou Link
       if (imageFile) {
-        formData.append('image', imageFile); // 'image' é o nome do campo no backend
+        formData.append("image", imageFile);
+      } else if (imageUrl) {
+        formData.append("imageUrl", imageUrl);
       }
-      
-      const response = await fetch('/api/posts', { // <-- Substituir URL
-        method: 'POST',
-        body: formData, // Envia o FormData (NÃO use headers 'Content-Type')
+
+      const response = await fetch("/api/posts", {
+        method: "POST",
+        body: formData,
       });
 
-      if (!response.ok) throw new Error('Falha ao criar postagem');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Falha ao criar postagem");
+      }
 
       const newPost: PostData = await response.json();
       setPosts([newPost, ...posts]);
-      */
-      // ---- FIM DA REQUISIÇÃO REAL ----
-
-      // ---- Início do Mock (Remover em produção) ----
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const newPost: PostData = {
-        id: `post-${Math.random()}`,
-        title,
-        content,
-        createdAt: new Date().toISOString(),
-        imageUrl: imageFile ? URL.createObjectURL(imageFile) : undefined,
-        likes: 0, // Novo post começa com 0 curtidas
-      };
-      setPosts([newPost, ...posts]);
-      // ---- Fim do Mock ----
 
       setModalOpen(null);
-      console.log("Postagem criada com sucesso!");
     } catch (error) {
       console.error("Erro ao criar postagem:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // --- Renderização ---
+  if (!isConnected) {
+    return <div className={styles.error}>Conecte sua carteira de ONG para acessar o Dashboard.</div>;
+  }
   if (isLoading) {
     return <div className={styles.loading}>Carregando dados da ONG...</div>;
   }
-  if (!ongData) {
-    return <div className={styles.error}>Não foi possível carregar os dados.</div>;
+  if (!ongData || !address) {
+    return (
+      <div className={styles.error}>Não foi possível carregar os dados. Verifique sua conexão e tente novamente.</div>
+    );
   }
 
   return (
@@ -231,7 +234,9 @@ export default function OngDashboardPage() {
             <strong>Tokens de Reputação</strong>
             <div className={styles.tokenDisplay}>
               <span>{ongData.reputationTokens.toLocaleString("pt-BR")}</span>
-              <img src="/images/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
+              {/* CORREÇÃO DO PATH DA IMAGEM */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
             </div>
           </div>
           <div className={styles.metricBox}>
@@ -241,6 +246,10 @@ export default function OngDashboardPage() {
         </div>
 
         <div className={styles.infoGrid}>
+          <div className={styles.infoBox}>
+            <strong>Carteira:</strong>
+            <span>{address}</span>
+          </div>
           <div className={styles.infoBox}>
             <strong>Email:</strong>
             <span>{ongData.contactEmail}</span>
@@ -269,7 +278,11 @@ export default function OngDashboardPage() {
           ) : (
             posts.map(post => (
               <article key={post.id} className={styles.postItem}>
-                {post.imageUrl && <img src={post.imageUrl} alt={post.title} className={styles.postImage} />}
+                {post.imageUrl && (
+                  // CORREÇÃO DO WARNING DE IMAGEM
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={post.imageUrl} alt={post.title} className={styles.postImage} />
+                )}
 
                 <div className={styles.postContent}>
                   <h3>{post.title}</h3>
@@ -292,7 +305,7 @@ export default function OngDashboardPage() {
         onClose={() => setModalOpen(null)}
         title={modalOpen === "edit-ong" ? "Alterar Dados da ONG" : "Criar Nova Postagem"}
       >
-        {modalOpen === "edit-ong" && (
+        {modalOpen === "edit-ong" && ongData && (
           <EditOngForm currentData={ongData} onSave={handleUpdateOng} onCancel={() => setModalOpen(null)} />
         )}
         {modalOpen === "create-post" && (
@@ -302,3 +315,5 @@ export default function OngDashboardPage() {
     </div>
   );
 }
+
+// <-- CORREÇÃO PRETTIER: Linha em branco

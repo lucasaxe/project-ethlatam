@@ -1,0 +1,20 @@
+{
+  "0x0000000000000000000000000000000000000000": {
+    "name": "Minha ONG Fantástica",
+    "objective": "Nosso objetivo é conectar doadores a projetos incríveis na América Latina.",
+    "reputationTokens": 1500,
+    "totalRaisedETH": 4.75,
+    "contactEmail": "contato@ongfantastica.org",
+    "website": "https.ongfantastica.org",
+    "cnpj": "12.345.678/0001-99"
+  },
+  "0x7379e116601D6a6108166ee0191644700B21c86F": {
+    "name": "ong do freeza",
+    "objective": "essa é a ong do kakakakkaka",
+    "reputationTokens": 50,
+    "totalRaisedETH": 0,
+    "contactEmail": "contato@padrao.org",
+    "cnpj": "00.000.000/0000-00",
+    "website": "https://goku.com"
+  }
+}
