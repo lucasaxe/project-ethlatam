@@ -1,151 +1,176 @@
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-// Importações de componentes (Ajuste o caminho se necessário)
+import React, { useEffect, useState } from "react";
 import CreatePostForm from "../../../components/dashboard/CreatePostForm";
+import { DashboardPostItem } from "../../../components/dashboard/DashboardPostItem";
 import EditOngForm from "../../../components/dashboard/EditOngForm";
 import Modal from "../../../components/dashboard/Modal";
-import { EditOngInput, OngData, PostData } from "../../lib/types";
-// Importando seus tipos
+import { EditOngInput, OngData } from "../../lib/types";
 import styles from "./Dashboard.module.css";
-// --- NOVO IMPORT WAGMI ---
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 import { useAccount } from "wagmi";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
-// app/dashboard/ong/page.tsx
-
-// --- DADOS MOCKADOS/DEFAULT PARA POSTS ---
-const MOCK_POSTS_DATA: PostData[] = [
-  {
-    id: "post-1",
-    title: "Campanha do Agasalho 2025",
-    content:
-      "Coletamos 500 casacos! Este é um texto um pouco mais longo para preencher espaço e ver como o card se comporta com mais conteúdo.",
-    createdAt: "2025-10-30T10:00:00Z",
-    imageUrl: "/images/post-placeholder.jpg",
-    likes: 128,
-  },
-];
-// --- FIM DOS DADOS MOCKADOS ---
+// /packages/nextjs/app/dashboard/ong/page.tsx
 
 export default function OngDashboardPage() {
   const [modalOpen, setModalOpen] = useState<"edit-ong" | "create-post" | null>(null);
   const [ongData, setOngData] = useState<OngData | null>(null);
-  const [posts, setPosts] = useState<PostData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [justRegistered, setJustRegistered] = useState(false);
 
-  // OBTENDO O ENDEREÇO DA CARTEIRA
   const { address, isConnected } = useAccount();
 
-  // Função para buscar DADOS DA ONG E POSTS
-  const fetchDashboardData = useCallback(async (currentAddress: string) => {
-    setIsLoading(true);
-    try {
-      // 1. BUSCA DADOS DA ONG PERSISTENTES USANDO O ENDEREÇO
-      const ongResponse = await fetch(`/api/ong-info?address=${currentAddress}`);
-      if (!ongResponse.ok) throw new Error("Falha ao buscar dados da ONG");
-      const ongApiData: OngData = await ongResponse.json();
+  const queryClient = useQueryClient();
 
-      // 2. BUSCA POSTS DA ONG
-      const postsResponse = await fetch("/posts-data.json");
-      // CORREÇÃO TS: Tipar como 'any[]' para o TypeScript não bloquear o 'filter'
-      const postsApiData: any[] = await postsResponse.json();
+  // Chaves de Query
+  const ongQueryKey = ["scaffoldRead", "YourContract", "ngos", { args: [address] }];
+  const postCountQueryKey = ["scaffoldRead", "YourContract", "getPostCount"];
+  const ngoPostIdsKey = ["scaffoldRead", "YourContract", "getNgoPostIds", { args: [address] }];
 
-      setOngData(ongApiData);
+  // --- Hooks do Contrato ---
+  const { data: onChainOngData, isLoading: isLoadingOng } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "ngos",
+    args: [address],
+    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
 
-      // CORREÇÃO TS: Filtrar e Mapear os dados
-      // O JSON salvo tem 'ongName', 'postTitle' e 'imageDescription'
-      // O componente espera 'id', 'title' e 'content'
-      const filteredAndMappedPosts = postsApiData
-        .filter(p => p.ongName === ongApiData.name) // Filtra pelo 'ongName' real
-        .map(p => ({
-          // Mapeia para o tipo 'PostData' que o componente espera
-          id: String(p.id),
-          title: p.postTitle, // De 'postTitle' para 'title'
-          content: p.imageDescription, // De 'imageDescription' para 'content'
-          createdAt: p.createdAt,
-          imageUrl: p.imageUrl,
-          likes: p.likes,
-        }));
+  // Busca a LISTA de IDs de posts que esta ONG criou
+  const { data: ngoPostIds } = useScaffoldReadContract({
+    contractName: "YourContract",
+    functionName: "getNgoPostIds",
+    args: [address],
+    // --- CORREÇÃO TS2353: 'enabled' movido para dentro de 'query' ---
+    query: {
+      enabled: isConnected && !!address,
+    },
+  });
 
-      setPosts(filteredAndMappedPosts);
-    } catch (error) {
-      console.error("Erro ao carregar dados do dashboard:", error);
-      // Em caso de falha, tenta carregar um default para não travar
-      setOngData(
-        prev =>
-          prev || {
-            id: currentAddress,
-            name: "ONG Padrão Não Registrada",
-            objective: "Conecte a carteira para personalizar seu perfil.",
-            contactEmail: "",
-            website: "",
-            cnpj: "",
-            reputationTokens: 0,
-            totalRaisedETH: 0.0,
-          },
-      );
-      setPosts(MOCK_POSTS_DATA);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // Dependência vazia, pois 'address' é passado como argumento no useEffect
+  // Hooks de Escrita
+  const { writeContractAsync: createPost, isPending: isCreatingPost } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
+  const { writeContractAsync: registerNGO, isPending: isRegistering } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
+  const { writeContractAsync: updateNGOName, isPending: isUpdatingName } = useScaffoldWriteContract({
+    contractName: "YourContract",
+  });
 
+  // Atualiza o estado da ONG (componente) quando os dados on-chain carregarem
   useEffect(() => {
-    if (isConnected && address) {
-      fetchDashboardData(address); // Passa o address como argumento
-    } else {
-      setIsLoading(false);
-      setOngData(null);
-      setPosts([]); // Limpa os posts ao desconectar
-    }
-  }, [isConnected, address, fetchDashboardData]); // Depende apenas de address e isConnected
-
-  // --- PONTO DE CONEXÃO BACKEND (2) - Update ONG (Persistência) ---
-  const handleUpdateOng = async (formData: EditOngInput) => {
-    if (!ongData || !address) return;
-    setIsLoading(true);
-
-    try {
-      // 1. CHAMA A NOVA ROTA PUT para salvar os dados no profiles.json
-      const response = await fetch(`/api/ong-info`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        // Envia o endereço no corpo para o servidor saber qual perfil atualizar
-        body: JSON.stringify({ ...formData, address }),
+    // onChainOngData[3] é 'isRegistered'
+    if (onChainOngData && onChainOngData[3]) {
+      setOngData({
+        id: address || "",
+        name: onChainOngData[0],
+        objective: "", // Adicionado valor padrão
+        contactEmail: "",
+        website: "",
+        cnpj: "",
+        reputationTokens: Number(onChainOngData[2]),
+        totalRaisedETH: 0.0,
       });
-      if (!response.ok) throw new Error("Falha ao atualizar ONG");
-
-      const updatedOng: OngData = await response.json();
-      setOngData(updatedOng); // Atualiza o estado com os dados salvos
-
-      setModalOpen(null);
-    } catch (error) {
-      console.error("Erro ao atualizar ONG:", error);
-    } finally {
       setIsLoading(false);
+
+      if (justRegistered) {
+        setModalOpen("edit-ong");
+        setJustRegistered(false);
+      }
+    } else if (isConnected && address && !isLoadingOng) {
+      setIsLoading(false);
+    }
+  }, [onChainOngData, address, isConnected, isLoadingOng, justRegistered]);
+
+  /**
+   * Chamado para registrar a ONG
+   */
+  const handleRegister = async () => {
+    if (!address || isRegistering) return;
+
+    const toastId = toast.loading("Confirmando registro na MetaMask...");
+    try {
+      const defaultName = `ONG ${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+      await registerNGO({
+        functionName: "registerNGO",
+        args: [defaultName],
+      });
+
+      toast.success("ONG registrada! Bem-vindo.", { id: toastId });
+
+      queryClient.invalidateQueries({ queryKey: ongQueryKey });
+
+      setJustRegistered(true);
+    } catch (error: any) {
+      console.error("Erro ao registrar ONG:", error);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error("Falha ao registrar ONG.", { id: toastId });
+      }
     }
   };
 
-  // --- PONTO DE CONEXÃO BACKEND (3) - CRIAÇÃO DE POST ---
+  /**
+   * Chamado ao salvar o formulário de "Editar Dados da ONG"
+   */
+  const handleUpdateOng = async (formData: EditOngInput) => {
+    if (isUpdatingName) return;
+
+    const toastId = toast.loading("Preparando transação...");
+    try {
+      if (formData.name && formData.name !== ongData?.name) {
+        toast.loading("Atualizando nome na blockchain...", { id: toastId });
+        await updateNGOName({
+          functionName: "updateNGOName",
+          args: [formData.name],
+        });
+        toast.success("Nome da ONG atualizado!", { id: toastId });
+
+        queryClient.invalidateQueries({ queryKey: ongQueryKey });
+      } else {
+        toast.success("Dados atualizados (simulado).", { id: toastId });
+      }
+
+      setModalOpen(null);
+    } catch (error: any) {
+      console.error("Erro ao atualizar nome da ONG:", error);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error("Falha ao atualizar nome.", { id: toastId });
+      }
+    }
+  };
+
+  /**
+   * Chamado ao criar um novo post
+   */
   const handleCreatePost = async ({
     title,
     content,
@@ -158,44 +183,80 @@ export default function OngDashboardPage() {
     imageUrl: string | null;
   }) => {
     if (!ongData) return;
-    setIsLoading(true);
+    if (isCreatingPost) return;
+
+    const toastId = toast.loading("Iniciando criação do post...");
 
     try {
-      // Cria o FormData para enviar os dados
-      const formData = new FormData();
-      formData.append("postTitle", title);
-      formData.append("imageDescription", content);
+      let finalImageUrl = imageUrl;
+      const pinataJwt = process.env.NEXT_PUBLIC_PINATA_JWT;
 
-      // Dados da ONG (Puxados do estado salvo)
-      formData.append("ongName", ongData.name);
-      formData.append("ongDescription", ongData.objective);
-      formData.append("ongTokens", String(ongData.reputationTokens));
-
-      // Arquivo ou Link
-      if (imageFile) {
-        formData.append("image", imageFile);
-      } else if (imageUrl) {
-        formData.append("imageUrl", imageUrl);
+      if (!pinataJwt) {
+        throw new Error("Chave JWT do Pinata não configurada no .env.local");
       }
 
-      const response = await fetch("/api/posts", {
+      // 1. Upload da Imagem
+      if (imageFile) {
+        toast.loading("1/3 - Fazendo upload da imagem...", { id: toastId });
+        const formData = new FormData();
+        formData.append("file", imageFile);
+
+        const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${pinataJwt}` },
+          body: formData,
+        });
+        const resData = await res.json();
+        if (!res.ok) throw new Error(resData.error || "Falha no upload da imagem");
+        finalImageUrl = `ipfs://${resData.IpfsHash}`;
+      }
+
+      if (!finalImageUrl) {
+        throw new Error("Nenhuma imagem fornecida (link ou arquivo).");
+      }
+
+      // 2. Upload dos Metadados (JSON)
+      toast.loading("2/3 - Fazendo upload dos metadados...", { id: toastId });
+      const postMetadata = {
+        postTitle: title,
+        imageDescription: content,
+        imageUrl: finalImageUrl,
+        ongName: ongData.name,
+      };
+
+      const res = await fetch("https://api.pinata.cloud/pinning/pinJSONToIPFS", {
         method: "POST",
-        body: formData,
+        headers: {
+          Authorization: `Bearer ${pinataJwt}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postMetadata),
+      });
+      const resData = await res.json();
+      if (!res.ok) throw new Error(resData.error || "Falha no upload dos metadados");
+
+      const contentUrl = `ipfs://${resData.IpfsHash}`;
+
+      // 4. Chamada do Contrato
+      toast.loading("3/3 - Aguardando confirmação da MetaMask...", { id: toastId });
+
+      await createPost({
+        functionName: "createPost",
+        args: [contentUrl],
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Falha ao criar postagem");
-      }
-
-      const newPost: PostData = await response.json();
-      setPosts([newPost, ...posts]);
-
+      toast.success("Post criado com sucesso!", { id: toastId });
       setModalOpen(null);
-    } catch (error) {
+
+      queryClient.invalidateQueries({ queryKey: postCountQueryKey });
+      queryClient.invalidateQueries({ queryKey: ngoPostIdsKey });
+    } catch (error: any) {
       console.error("Erro ao criar postagem:", error);
-    } finally {
-      setIsLoading(false);
+      if (error.message.includes("rejected")) {
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else {
+        toast.error(error.message || "Erro desconhecido", { id: toastId });
+      }
     }
   };
 
@@ -203,14 +264,45 @@ export default function OngDashboardPage() {
   if (!isConnected) {
     return <div className={styles.error}>Conecte sua carteira de ONG para acessar o Dashboard.</div>;
   }
-  if (isLoading) {
+  if (isLoading || isLoadingOng) {
     return <div className={styles.loading}>Carregando dados da ONG...</div>;
   }
-  if (!ongData || !address) {
+  if (!address) {
     return (
       <div className={styles.error}>Não foi possível carregar os dados. Verifique sua conexão e tente novamente.</div>
     );
   }
+
+  // --- LÓGICA DE ONBOARDING ---
+  if (!onChainOngData?.[3]) {
+    // onChainOngData[3] é 'isRegistered'
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] p-4">
+        <div className="card w-full max-w-lg bg-base-100 shadow-xl">
+          <div className="card-body items-center text-center">
+            <SparklesIcon className="h-16 w-16 text-primary" />
+            <h2 className="card-title text-3xl">Bem-vindo(a) à Plataforma!</h2>
+            <p className="text-base-content/80 mt-4">
+              Sua carteira ({address}) ainda não está registrada como uma ONG.
+            </p>
+            <p className="text-base-content/80">Clique abaixo para se registrar na blockchain e começar a postar.</p>
+            <div className="card-actions mt-6">
+              <button onClick={handleRegister} className="btn btn-primary btn-lg" disabled={isRegistering}>
+                {isRegistering ? <span className="loading loading-spinner"></span> : "Registrar-se como ONG"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!ongData) {
+    return <div className={styles.loading}>Carregando dados da ONG...</div>;
+  }
+
+  // --- RENDERIZAÇÃO DO DASHBOARD NORMAL ---
+  const postIdsToShow = ngoPostIds ? ngoPostIds.map(id => Number(id)).reverse() : [];
 
   return (
     <div className={styles.dashboardPage}>
@@ -226,7 +318,6 @@ export default function OngDashboardPage() {
         </div>
       </header>
 
-      {/* --- Seção de Informações --- */}
       <section className={styles.section}>
         <h2>Informações da Organização</h2>
         <div className={styles.metricsGrid}>
@@ -234,7 +325,6 @@ export default function OngDashboardPage() {
             <strong>Tokens de Reputação</strong>
             <div className={styles.tokenDisplay}>
               <span>{ongData.reputationTokens.toLocaleString("pt-BR")}</span>
-              {/* CORREÇÃO DO PATH DA IMAGEM */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/good-reputation-token.jpg" alt="Token de Reputação" className={styles.tokenIcon} />
             </div>
@@ -250,56 +340,20 @@ export default function OngDashboardPage() {
             <strong>Carteira:</strong>
             <span>{address}</span>
           </div>
-          <div className={styles.infoBox}>
-            <strong>Email:</strong>
-            <span>{ongData.contactEmail}</span>
-          </div>
-          <div className={styles.infoBox}>
-            <strong>Website:</strong>
-            <span>{ongData.website || "Não informado"}</span>
-          </div>
-          <div className={styles.infoBox}>
-            <strong>CNPJ:</strong>
-            <span>{ongData.cnpj}</span>
-          </div>
-          <div className={`${styles.infoBox} ${styles.fullSpan}`}>
-            <strong>Objetivo:</strong>
-            <p>{ongData.objective}</p>
-          </div>
         </div>
       </section>
 
-      {/* --- Seção de Postagens --- */}
       <section className={styles.section}>
-        <h2>Postagens Recentes</h2>
-        <div className={styles.postList}>
-          {posts.length === 0 ? (
-            <p>Nenhuma postagem criada ainda.</p>
+        <h2>Suas Postagens</h2>
+        <div className="flex flex-col gap-4 mt-4">
+          {postIdsToShow.length === 0 ? (
+            <p className="text-base-content/70">Você ainda não criou nenhuma postagem.</p>
           ) : (
-            posts.map(post => (
-              <article key={post.id} className={styles.postItem}>
-                {post.imageUrl && (
-                  // CORREÇÃO DO WARNING DE IMAGEM
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.imageUrl} alt={post.title} className={styles.postImage} />
-                )}
-
-                <div className={styles.postContent}>
-                  <h3>{post.title}</h3>
-                  <p>{post.content}</p>
-
-                  <div className={styles.postFooter}>
-                    <span>Publicado em: {new Date(post.createdAt).toLocaleDateString()}</span>
-                    <span className={styles.postLikes}>♥ {post.likes.toLocaleString("pt-BR")}</span>
-                  </div>
-                </div>
-              </article>
-            ))
+            postIdsToShow.map(id => <DashboardPostItem key={id} postId={id} />)
           )}
         </div>
       </section>
 
-      {/* --- MODAL --- */}
       <Modal
         isOpen={modalOpen !== null}
         onClose={() => setModalOpen(null)}
@@ -316,4 +370,4 @@ export default function OngDashboardPage() {
   );
 }
 
-// <-- CORREÇÃO PRETTIER: Linha em branco
+//
