@@ -2,9 +2,29 @@
 "use client";
 
 import React, { useState } from "react";
-// Corrigido para apontar para 'app/lib/types'
+// Corrected to point to 'app/lib/types' (Corrigido para apontar para 'app/lib/types')
 import { EditOngInput, OngData } from "../../app/lib/types";
 import styles from "./Forms.module.css";
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
+
+// components/dashboard/EditOngForm.tsx
 
 // components/dashboard/EditOngForm.tsx
 
@@ -55,7 +75,7 @@ export default function EditOngForm({ currentData, onSave, onCancel }: EditFormP
     try {
       await onSave(formData);
     } catch (error) {
-      console.error("Erro no onSave do formulário:", error);
+      console.error("Error in form onSave:", error);
     } finally {
       setIsSaving(false);
     }
@@ -64,13 +84,13 @@ export default function EditOngForm({ currentData, onSave, onCancel }: EditFormP
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.formGroup}>
-        <label htmlFor="ongName">Nome da ONG</label>
-        <input id="ongName" type="text" value={name} onChange={e => setName(e.target.value)} required />
+        <label htmlFor="ngoName">NGO Name</label>
+        <input id="ngoName" type="text" value={name} onChange={e => setName(e.target.value)} required />
       </div>
       <div className={styles.formGroup}>
-        <label htmlFor="ongEmail">Email de Contato</label>
+        <label htmlFor="ngoEmail">Contact Email</label>
         <input
-          id="ongEmail"
+          id="ngoEmail"
           type="email"
           value={contactEmail}
           onChange={e => setContactEmail(e.target.value)}
@@ -79,9 +99,9 @@ export default function EditOngForm({ currentData, onSave, onCancel }: EditFormP
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="ongCnpj">CNPJ</label>
+        <label htmlFor="ngoCnpj">CNPJ (Tax ID)</label>
         <input
-          id="ongCnpj"
+          id="ngoCnpj"
           type="text"
           value={cnpj}
           onChange={e => setCnpj(e.target.value)}
@@ -91,21 +111,21 @@ export default function EditOngForm({ currentData, onSave, onCancel }: EditFormP
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="ongWebsite">Website (opcional)</label>
-        <input id="ongWebsite" type="url" value={website} onChange={e => setWebsite(e.target.value)} />
+        <label htmlFor="ngoWebsite">Website (optional)</label>
+        <input id="ngoWebsite" type="url" value={website} onChange={e => setWebsite(e.target.value)} />
       </div>
 
       <div className={styles.formGroup}>
-        <label htmlFor="ongObjective">Objetivo</label>
-        <textarea id="ongObjective" value={objective} onChange={e => setObjective(e.target.value)} rows={5} />
+        <label htmlFor="ngoObjective">Objective</label>
+        <textarea id="ngoObjective" value={objective} onChange={e => setObjective(e.target.value)} rows={5} />
       </div>
 
       <div className={styles.formActions}>
         <button type="button" onClick={onCancel} className={styles.buttonSecondary} disabled={isSaving}>
-          Cancelar
+          Cancel
         </button>
         <button type="submit" className={styles.buttonPrimary} disabled={isSaving}>
-          {isSaving ? "Salvando..." : "Salvar Alterações"}
+          {isSaving ? "Saving..." : "Save Changes"}
         </button>
       </div>
     </form>

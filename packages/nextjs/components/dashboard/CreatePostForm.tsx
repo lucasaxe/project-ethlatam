@@ -24,10 +24,30 @@ import styles from "./Forms.module.css";
 
 // components/dashboard/CreatePostForm.tsx
 
-// Corrigido para apontar para 'app/lib/types'
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// components/dashboard/CreatePostForm.tsx
+
+// Corrected to point to 'app/lib/types' (Corrigido para apontar para 'app/lib/types')
 
 interface CreateFormProps {
-  // A tipagem de 'onCreate' agora suporta URL ou File
+  // The typing of 'onCreate' now supports URL or File (A tipagem de 'onCreate' agora suporta URL ou File)
   onCreate: (data: {
     title: string;
     content: string;
@@ -40,24 +60,24 @@ interface CreateFormProps {
 export default function CreatePostForm({ onCreate, onCancel }: CreateFormProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [imageOption, setImageOption] = useState<"file" | "url">("file"); // Novo estado: Arquivo ou URL
+  const [imageOption, setImageOption] = useState<"file" | "url">("file"); // New state: File or URL (Novo estado: Arquivo ou URL)
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageUrl, setImageUrl] = useState(""); // Novo estado para o link
+  const [imageUrl, setImageUrl] = useState(""); // New state for the link (Novo estado para o link)
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
-  // Manipula a mudança de arquivo
+  // Handles file change (Manipula a mudança de arquivo)
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
-    // Limpa o preview anterior para evitar vazamento de memória
+    // Clear previous preview to prevent memory leak (Limpa o preview anterior para evitar vazamento de memória)
     if (imagePreview) {
       URL.revokeObjectURL(imagePreview);
     }
 
     if (file) {
       setImageFile(file);
-      setImageUrl(""); // Limpa o link
+      setImageUrl(""); // Clear the link (Limpa o link)
       setImagePreview(URL.createObjectURL(file));
     } else {
       setImageFile(null);
@@ -65,15 +85,15 @@ export default function CreatePostForm({ onCreate, onCancel }: CreateFormProps) 
     }
   };
 
-  // Manipula a mudança de URL
+  // Handles URL change (Manipula a mudança de URL)
   const handleUrlChange = (e: ChangeEvent<HTMLInputElement>) => {
     const url = e.target.value;
-    // Limpa o preview de arquivo anterior
+    // Clear previous file preview (Limpa o preview de arquivo anterior)
     if (imagePreview && imageFile) {
       URL.revokeObjectURL(imagePreview);
     }
     setImageUrl(url);
-    setImageFile(null); // Limpa o arquivo
+    setImageFile(null); // Clear the file (Limpa o arquivo)
     setImagePreview(url || null);
   };
 
@@ -87,27 +107,27 @@ export default function CreatePostForm({ onCreate, onCancel }: CreateFormProps) 
     try {
       await onCreate({ title, content, imageFile: finalImageFile, imageUrl: finalImageUrl });
     } catch (error) {
-      console.error("Erro no onCreate do formulário:", error);
+      console.error("Error in form onCreate:", error);
     } finally {
       setIsCreating(false);
     }
   };
 
-  // --- Renderização do Formulário ---
+  // --- Form Rendering (Renderização do Formulário) ---
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className={styles.formGroup}>
-        <label htmlFor="postTitle">Título da Postagem</label>
+        <label htmlFor="postTitle">Post Title</label>
         <input id="postTitle" type="text" value={title} onChange={e => setTitle(e.target.value)} required />
       </div>
 
-      {/* --- Seleção de Opção de Imagem --- */}
+      {/* --- Image Option Selection (Seleção de Opção de Imagem) --- */}
       <div className={styles.formGroup}>
-        <label>Fonte da Imagem (Opcional)</label>
+        <label>Image Source (Optional)</label>
         <div className={styles.radioGroup}>
           <label>
             <input type="radio" checked={imageOption === "file"} onChange={() => setImageOption("file")} />
-            Upload de Arquivo
+            File Upload
           </label>
           <label>
             <input type="radio" checked={imageOption === "url"} onChange={() => setImageOption("url")} />
@@ -116,7 +136,7 @@ export default function CreatePostForm({ onCreate, onCancel }: CreateFormProps) 
         </div>
       </div>
 
-      {/* --- Campo Condicional --- */}
+      {/* --- Conditional Field (Campo Condicional) --- */}
       {imageOption === "file" ? (
         <div className={styles.formGroup}>
           <input
@@ -129,28 +149,28 @@ export default function CreatePostForm({ onCreate, onCancel }: CreateFormProps) 
         </div>
       ) : (
         <div className={styles.formGroup}>
-          <label htmlFor="postImageUrl">Link da Imagem (URL)</label>
+          <label htmlFor="postImageUrl">Image Link (URL)</label>
           <input id="postImageUrl" type="url" value={imageUrl} onChange={handleUrlChange} />
         </div>
       )}
 
-      {/* Preview de Imagem */}
+      {/* Image Preview (Preview de Imagem) */}
       {imagePreview && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={imagePreview} alt="Preview" className={styles.imagePreview} />
       )}
 
       <div className={styles.formGroup}>
-        <label htmlFor="postContent">Conteúdo/Descrição do Post</label>
+        <label htmlFor="postContent">Post Content/Description</label>
         <textarea id="postContent" value={content} onChange={e => setContent(e.target.value)} rows={8} required />
       </div>
 
       <div className={styles.formActions}>
         <button type="button" onClick={onCancel} className={styles.buttonSecondary} disabled={isCreating}>
-          Cancelar
+          Cancel
         </button>
         <button type="submit" className={styles.buttonPrimary} disabled={isCreating}>
-          {isCreating ? "Publicando..." : "Publicar Postagem"}
+          {isCreating ? "Publishing..." : "Publish Post"}
         </button>
       </div>
     </form>
