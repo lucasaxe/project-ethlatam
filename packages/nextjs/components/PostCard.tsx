@@ -5,16 +5,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { erc20Abi, parseEther } from "viem";
 import { useAccount, useWriteContract } from "wagmi";
-// <-- Define 'useAccount' e 'useWriteContract'
 import { waitForTransactionReceipt } from "wagmi/actions";
-// <-- Define 'wagmiConfig'
 import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
-// <-- Define 'waitForTransactionReceipt'
 import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
 // --- ENDEREÇO DO WETH NA BASE SEPOLIA ---
-// !! IMPORTANTE !! Verifique este endereço.
-// Este é o endereço comum para WETH em testnets L2, mas confirme no block explorer.
 const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
 
 // --- Tipagem para os Metadados (do IPFS/JSON) ---
@@ -75,8 +70,6 @@ export const PostCard = ({ postId }: { postId: number }) => {
   const [metadata, setMetadata] = useState<PostMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
   const [donationAmount, setDonationAmount] = useState("5.00"); // Valor em USD
-
-  // --- NOVO ESTADO PARA O PENHOR (PLEDGE) ---
   const [minReputation, setMinReputation] = useState("100"); // Valor padrão
   const [isApproving, setIsApproving] = useState(false);
 
@@ -112,17 +105,11 @@ export const PostCard = ({ postId }: { postId: number }) => {
     contractName: "YourContract",
   });
 
-  // --- NOVOS HOOKS DE ESCRITA PARA O FLUXO DE PENHOR ---
-
-  // 1. Hook para APROVAR (no contrato WETH)
-  // Usamos o hook genérico do Wagmi, pois WETH é um contrato externo
+  // --- Hooks de Escrita para o Fluxo de Penhor ---
   const { writeContractAsync: approveWeth } = useWriteContract();
-
-  // 2. Hook para PENHORAR (no YourContract)
   const { writeContractAsync: pledgeDonation, isPending: isPledging } = useScaffoldWriteContract({
     contractName: "YourContract",
   });
-  // --- FIM DOS NOVOS HOOKS ---
 
   // useEffect para buscar preço do ETH
   useEffect(() => {
@@ -180,42 +167,42 @@ export const PostCard = ({ postId }: { postId: number }) => {
     }
   };
 
+  /**
+   * @dev Chamado pelo botão PLEDGE
+   */
   const handlePledge = async () => {
     const amountUsd = parseFloat(donationAmount);
     const minReputationBigInt = BigInt(minReputation || "0");
 
-    // Validação (sem alteração)
+    // Validação
     if (isApproving || isPledging) return;
     if (!amountUsd || amountUsd <= 0) {
-      toast.error("Por favor, insira um valor válido em USD.");
+      toast.error("Please enter a valid USD amount.");
       return;
     }
     if (minReputationBigInt <= 0) {
-      toast.error("Reputação mínima deve ser maior que 0.");
+      toast.error("Minimum reputation must be greater than 0.");
       return;
     }
     if (ethPrice === 0) {
-      toast.error("Não foi possível buscar o preço do WETH. Tente novamente.");
+      toast.error("Could not fetch WETH price. Please try again.");
       return;
     }
     if (!yourContractAddress) {
-      toast.error("Endereço do contrato principal não encontrado.");
+      toast.error("Contract address not found.");
       return;
     }
 
-    const toastId = toast.loading("Calculando valor do penhor...");
+    const toastId = toast.loading("Calculating pledge value...");
     try {
-      // --- LÓGICA DE CONVERSÃO (SEM ALTERAÇÃO) ---
+      // Lógica de Conversão
       const amountEth = amountUsd / ethPrice;
       const valueInWei = parseEther(amountEth.toString());
 
-      // --- FLUXO DE 2 ETAPAS: APPROVE -> PLEDGE ---
-
-      // Define o estado de 'approving' para desabilitar o botão
       setIsApproving(true);
 
-      // ETAPA 1: APROVAR (Approve)
-      toast.loading("Por favor, aprove o gasto do WETH na sua carteira...", { id: toastId });
+      // ETAPA 1: Approve
+      toast.loading("Please approve WETH spending in your wallet...", { id: toastId });
 
       const approveTxHash = await approveWeth({
         address: WETH_ADDRESS,
@@ -224,53 +211,42 @@ export const PostCard = ({ postId }: { postId: number }) => {
         args: [yourContractAddress as `0x${string}`, valueInWei],
       });
 
-      // ETAPA 1.5: AGUARDAR A MINERAÇÃO (A NOVA LÓGICA)
-      toast.loading("Aguardando confirmação da aprovação...", { id: toastId });
+      // ETAPA 1.5: Aguardar Mineração
+      toast.loading("Waiting for approval confirmation...", { id: toastId });
 
       await waitForTransactionReceipt(wagmiConfig, {
         hash: approveTxHash,
-        confirmations: 1, // Espera pelo menos 1 bloco
+        confirmations: 1,
       });
 
-      // Libera o estado de 'approving'
       setIsApproving(false);
 
-      // ETAPA 2: PENHORAR (Pledge)
-      // Esta etapa só roda DEPOIS que a Etapa 1.5 foi concluída.
-      toast.loading("Registrando seu penhor (pledge)...", { id: toastId });
+      // ETAPA 2: Pledge
+      toast.loading("Registering your pledge...", { id: toastId });
 
       await pledgeDonation({
         functionName: "pledgeDonation",
-        args: [
-          BigInt(postId), // _postId
-          WETH_ADDRESS, // _token
-          valueInWei, // _amount
-          minReputationBigInt, // _minReputationTokens
-        ],
+        args: [BigInt(postId), WETH_ADDRESS, valueInWei, minReputationBigInt],
       });
 
-      toast.success("Penhor registrado com sucesso! A doação ocorrerá quando a ONG atingir a meta.", { id: toastId });
+      toast.success("Pledge registered successfully! The donation will occur when the NGO meets the goal.", {
+        id: toastId,
+      });
 
       queryClient.invalidateQueries({ queryKey: postDetailsQueryKey });
       (document.getElementById(modalId) as HTMLDialogElement)?.close();
     } catch (e: any) {
-      // Limpa o estado em caso de erro
       setIsApproving(false);
-
-      console.error("Erro ao registrar o penhor:", e);
-      // O 'pledgeDonation' (Scaffold-ETH) vai tratar o erro "Verifique a permissao..."
+      console.error("Error registering pledge:", e);
       if (e.message.includes("rejected")) {
-        toast.error("Transação rejeitada.", { id: toastId });
-      } else if (e.message.includes("Verifique a permissao")) {
-        // Isso não deveria mais acontecer, mas é bom ter
-        toast.error("Falha na permissão do token.", { id: toastId });
+        toast.error("Transaction rejected.", { id: toastId });
       } else {
-        toast.error("Falha ao registrar penhor.", { id: toastId });
+        toast.error("Failed to register pledge.", { id: toastId });
       }
     }
   };
-  // --- Rendering ---
 
+  // --- Rendering ---
   if (isLoadingOnChain || isLoadingMetadata || !onChainPostData || !metadata || ethPrice === 0) {
     return (
       <section className="flex items-center justify-center w-full py-16 border-b border-base-300 min-h-[400px]">
@@ -281,29 +257,19 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
   const { ngoName, ngoReputation, likeCount } = onChainPostData;
   const { postTitle, imageDescription, imageUrl } = metadata;
-
   const httpImageUrl = ipfsToHttpGateway(imageUrl);
-
-  // --- CÁLCULO DE VALOR EM WETH (PARA O MODAL) ---
-  let donationInEth = 0;
-  if (ethPrice > 0) {
-    donationInEth = parseFloat(donationAmount || "0") / ethPrice;
-  }
 
   return (
     <section key={postId} className="flex items-center justify-center w-full py-16 border-b border-base-300">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
-        {/* Coluna 1: Informações da ONG e Botão DONATE */}
+        {/* Coluna 1: Informações da ONG e Botão PLEDGE */}
         <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2 items-center">
-          {/* ... (Conteúdo da Coluna 1: Nome da ONG, Reputação, Descrição - Sem alteração) ... */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-4">
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{ngoName}</h2>
           </div>
-
           <p className="text-base text-base-content/70 mb-8 w-full text-left">
             {imageDescription.substring(0, 100)}...
           </p>
-
           <div className="flex items-center space-x-2 mb-8 p-2 bg-base-200/50 rounded-lg border border-base-300 w-fit">
             <div className="flex items-baseline space-x-1">
               <span className="text-lg font-semibold text-blue-600">Reputation:</span>
@@ -316,14 +282,13 @@ export const PostCard = ({ postId }: { postId: number }) => {
               className="w-12 h-12 rounded-full object-cover"
             />
           </div>
-
           <div className="flex justify-center w-full">
             <button
               className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90 w-full"
               onClick={() => (document.getElementById(modalId) as HTMLDialogElement)?.showModal()}
               disabled={!connectedAddress}
             >
-              DONATE TO NGO
+              PLEDGE DONATION
             </button>
           </div>
         </div>
@@ -344,10 +309,8 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
         {/* Coluna 3: Descrição e LIKES */}
         <div className="md:col-span-1 md:order-3 order-3 flex flex-col justify-start self-start">
-          {/* ... (Conteúdo da Coluna 3: Título, Descrição, Botão Like - Sem alteração) ... */}
           <h3 className="text-2xl font-semibold mb-3 text-lime-600">{postTitle}</h3>
           <p className="text-base-content/80 italic">{imageDescription}</p>
-
           <div className="mt-4 flex items-center gap-2">
             <button
               className="btn btn-ghost btn-circle btn-lg"
@@ -363,69 +326,128 @@ export const PostCard = ({ postId }: { postId: number }) => {
         </div>
       </div>
 
-      {/* --- MODAL DE DOAÇÃO ATUALIZADO --- */}
+      {/* --- MODAL DE DOAÇÃO (ORDEM INVERTIDA) --- */}
       <dialog id={modalId} className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box">
-          <h3 className="font-bold text-lg text-base-content">Fazer um Penhor (Pledge) para:</h3>
-          <p className="py-2 text-lime-600 font-semibold">{postTitle}</p>
+        <div className="modal-box relative">
+          {/* Botão de Fechar (X) no canto */}
+          <button
+            className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onClick={() => (document.getElementById(modalId) as HTMLDialogElement)?.close()}
+          >
+            ✕
+          </button>
 
-          {/* CAMPO DE VALOR (USD) */}
-          <div className="form-control w-full mt-4">
+          <h3 className="font-bold text-2xl text-base-content">Make a Pledge for:</h3>
+          <p className="py-1 text-lime-600 font-semibold text-lg">{ngoName}</p>
+
+          <div className="divider mt-2 mb-4"></div>
+
+          {/* === BLOCO 1: VALOR (INPUT) === */}
+          <div className="form-control w-full">
             <label className="label" htmlFor={`usd-amount-${postId}`}>
-              <span className="label-text">Valor da Doação (USD)</span>
+              <span className="label-text font-medium">1. Set Pledge Amount (USD)</span>
             </label>
-            <div className="join">
-              <span className="btn join-item no-animation pointer-events-none">$</span>
+            <label className="input input-bordered flex items-center gap-2 text-lg">
+              <span className="text-base-content/50">$</span>
               <input
                 id={`usd-amount-${postId}`}
                 type="number"
                 value={donationAmount}
                 onChange={e => setDonationAmount(e.target.value)}
-                className="input input-bordered w-full join-item"
-                placeholder="Ex: 5.00"
+                className="grow"
+                placeholder="5.00"
               />
-              <span className="btn join-item no-animation pointer-events-none">USD</span>
+              <span className="badge badge-ghost">USD</span>
+            </label>
+            <label className="label"></label>
+          </div>
+
+          {/* === BLOCO 2: REPUTAÇÃO ATUAL (INFO) === */}
+          <div className="w-full mt-4">
+            <span className="label-text font-medium">NGO&apos;s Current Reputation:</span>
+            <div className="flex items-center gap-2 mt-2">
+              {/* --- ORDEM INVERTIDA --- */}
+              <span className="font-bold text-info text-2xl">{Number(ngoReputation)}</span>
+
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/good-reputation-token.jpg"
+                alt="Rep"
+                // vvv PONTO DE MUDANÇA vvv
+                // Altere as classes w-9 e h-9 para aumentar o tamanho (ex: w-10 h-10)
+                className="w-16 h-16 rounded-full"
+                // ^^^ PONTO DE MUDANÇA ^^^
+              />
             </div>
-            <label className="label">
-              <span className="label-text-alt text-blue-600">Equivalente a: ~{donationInEth.toFixed(6)} WETH</span>
+          </div>
+
+          {/* === BLOCO 3: REPUTAÇÃO MÍNIMA (INPUT) === */}
+          <div className="form-control w-full mt-6">
+            <label className="label" htmlFor={`min-reputation-${postId}`}>
+              <span className="label-text font-medium">2. Set Your Minimum Reputation</span>
+            </label>
+            <label className="input input-bordered flex items-center gap-2 text-lg">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 16 16"
+                fill="currentColor"
+                className="w-5 h-5 opacity-70"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 1.75a.75.75 0 0 1 .692 1.032l-1.32 3.299 3.299-1.32A.75.75 0 0 1 11.75 5.5l-1.32 3.299 3.299-1.32a.75.75 0 0 1 .68 1.39l-3.298 1.318 1.318 3.298a.75.75 0 0 1-1.39.68l-1.32-3.299-3.299 1.32a.75.75 0 0 1-1.032-.692l1.32-3.299-3.299 1.32a.75.75 0 0 1-.68-1.39l3.298-1.318-1.318-3.298a.75.75 0 0 1 1.39-.68l1.32 3.299L7.308 2.782A.75.75 0 0 1 8 1.75Z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <input
+                id={`min-reputation-${postId}`}
+                type="number"
+                value={minReputation}
+                onChange={e => setMinReputation(e.target.value)}
+                className="grow"
+                placeholder="100"
+              />
             </label>
           </div>
 
-          {/* --- NOVO CAMPO: REPUTAÇÃO MÍNIMA --- */}
-          <div className="form-control w-full mt-4">
-            <label className="label" htmlFor={`min-reputation-${postId}`}>
-              <span className="label-text">Reputação Mínima Exigida</span>
-              <span className="label-text-alt">Reputação Atual: {Number(ngoReputation)}</span>
-            </label>
-            <input
-              id={`min-reputation-${postId}`}
-              type="number"
-              value={minReputation}
-              onChange={e => setMinReputation(e.target.value)}
-              className="input input-bordered w-full"
-              placeholder="Ex: 100"
-            />
-            <label className="label">
-              <span className="label-text-alt text-base-content/70">
-                A doação (em WETH) só será executada quando a ONG atingir este valor.
-              </span>
-            </label>
+          {/* === AVISO DE CONDIÇÃO === */}
+          <div role="alert" className="alert alert-info mt-8 bg-blue-500/10 border-blue-500/30">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="stroke-info shrink-0 w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              ></path>
+            </svg>
+            <div>
+              <h3 className="font-bold">This is a Conditional Pledge!</h3>
+              <div className="text-xs">
+                Your pledge will only be transferred to the NGO if and when their reputation meets your minimum
+                requirement.
+              </div>
+            </div>
           </div>
 
           {/* Botões de Ação */}
-          <div className="modal-action flex flex-col-reverse sm:flex-row gap-2">
+          <div className="modal-action flex flex-col-reverse sm:flex-row gap-2 mt-6">
             <button
               className="btn btn-ghost"
               onClick={() => (document.getElementById(modalId) as HTMLDialogElement)?.close()}
             >
-              Cancelar
+              Cancel
             </button>
             <button
               className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90"
-              onClick={handlePledge} // <-- CHAMA A NOVA FUNÇÃO
+              onClick={handlePledge}
               disabled={isApproving || isPledging || !connectedAddress || !ethPrice || isLoadingContractInfo}
             >
-              {isApproving ? "Aprovando WETH..." : isPledging ? "Registrando Penhor..." : "Confirmar Penhor (2 etapas)"}
+              {isApproving ? "Approving WETH..." : isPledging ? "Pledging..." : "Confirm Pledge (2 steps)"}
             </button>
           </div>
         </div>
