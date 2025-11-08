@@ -7,6 +7,7 @@ import { DashboardPostItem } from "../../../components/dashboard/DashboardPostIt
 import EditOngForm from "../../../components/dashboard/EditOngForm";
 import Modal from "../../../components/dashboard/Modal";
 import { EditOngInput, OngData } from "../../lib/types";
+// Importação de estilos (deve estar idêntica ao seu arquivo original)
 import styles from "./Dashboard.module.css";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
@@ -14,6 +15,26 @@ import { formatEther } from "viem";
 import { useAccount } from "wagmi";
 import { SparklesIcon } from "@heroicons/react/24/outline";
 import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
+
+// /packages/nextjs/app/dashboard/ngo/page.tsx
 
 // /packages/nextjs/app/dashboard/ngo/page.tsx
 
@@ -293,19 +314,28 @@ export default function OngDashboardPage() {
   }
 
   // --- ONBOARDING LOGIC (LÓGICA DE ONBOARDING) ---
+  // [INÍCIO DA SEÇÃO MODIFICADA]
   if (!onChainOngData?.[3]) {
     // onChainOngData[3] is 'isRegistered'
+    // Agora usa as classes do Dashboard.module.css
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] p-4">
-        <div className="card w-full max-w-lg bg-base-100 shadow-xl">
-          <div className="card-body items-center text-center">
-            <SparklesIcon className="h-16 w-16 text-primary" />
-            <h2 className="card-title text-3xl">Welcome to the Platform!</h2>
-            <p className="text-base-content/80 mt-4">Your wallet ({address}) is not yet registered as an NGO.</p>
-            <p className="text-base-content/80">Click below to register on the blockchain and start posting.</p>
-            <div className="card-actions mt-6">
-              <button onClick={handleRegister} className="btn btn-primary btn-lg" disabled={isRegistering}>
-                {isRegistering ? <span className="loading loading-spinner"></span> : "Register as NGO"}
+      <div className={styles.onboardingContainer}>
+        <div className={styles.onboardingCard}>
+          <div className={styles.onboardingBody}>
+            <SparklesIcon className={styles.onboardingIcon} />
+            <h2 className={styles.onboardingTitle}>Welcome to the Platform!</h2>
+            <p className={styles.onboardingText}>
+              Your wallet (<code>{address}</code>) is not yet registered as an NGO.
+            </p>
+            <p className={styles.onboardingText}>Click below to register on the blockchain and start posting.</p>
+            <div className={styles.onboardingActions}>
+              <button
+                onClick={handleRegister}
+                // Combina a classe .buttonPrimary (do CSS module) com .onboardingButton
+                className={`${styles.buttonPrimary} ${styles.onboardingButton}`}
+                disabled={isRegistering}
+              >
+                {isRegistering ? <span className={styles.loadingSpinner}></span> : "Register as NGO"}
               </button>
             </div>
           </div>
@@ -313,6 +343,7 @@ export default function OngDashboardPage() {
       </div>
     );
   }
+  // [FIM DA SEÇÃO MODIFICADA]
 
   if (!ongData) {
     return <div className={styles.loading}>Loading NGO data...</div>;
