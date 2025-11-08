@@ -42,7 +42,7 @@ contract YourContract {
         uint256 amount;          // Quantidade de tokens
         address ngoAddress;      // ONG que receberá
         uint256 minReputation;   // Reputação mínima exigida
-        uint256 postId;          // Post ao qual está atrelado (opcional, mas bom)
+        uint256 postId;          // Post ao qual está atrelado
         bool isActive;           // Se o penhor ainda está ativo
     }
 
@@ -91,7 +91,7 @@ contract YourContract {
     );
 
 
-    // --- Funções de Leitura --- (Completadas com a versão antiga)
+    // --- Funções de Leitura ---
     function getPostCount() public view returns (uint256) {
         return allPosts.length;
     }
@@ -118,7 +118,7 @@ contract YourContract {
     }
 
 
-    // --- Funções de Escrita --- (Completadas com a versão antiga)
+    // --- Funções de Escrita ---
 
     function registerNGO(string memory _name) public {
         address _ngoOwner = msg.sender;
@@ -129,7 +129,7 @@ contract YourContract {
             owner: _ngoOwner,
             reputation: 0,
             isRegistered: true,
-            totalRaisedByNgo: 0 // <-- INICIALIZADO AQUI
+            totalRaisedByNgo: 0
         });
 
         emit NGORegistered(_ngoOwner, _name);
@@ -162,7 +162,7 @@ contract YourContract {
         emit PostCreated(_postId, _ngoOwner, _contentUrl);
     }
 
-    // A SUA FUNÇÃO DE DOAÇÃO ATUAL (Mantida para doações diretas, se desejar)
+    // Função de doação direta (em ETH)
     function donateToPost(uint256 _postId) public payable {
         require(_postId < allPosts.length, "Post nao existe");
         require(msg.value > 0, "Voce deve enviar alguma quantia");
@@ -180,11 +180,10 @@ contract YourContract {
         emit PostDonated(_postId, msg.sender, msg.value);
     }
 
-    // --- !! NOVAS FUNÇÕES DE PENHOR (PLEDGE) !! ---
+    // --- Funções de Penhor (Pledge) ---
 
     /**
-     * @dev Registra um "penhor" de doação. Não transfere fundos, apenas salva a promessa.
-     * O usuário DEVE ter chamado `approve()` no contrato do WETH antes disso.
+     * @dev Registra um "penhor" de doação de token ERC20.
      */
     function pledgeDonation(
         uint256 _postId,
@@ -232,13 +231,14 @@ contract YourContract {
 
     /**
      * @dev Função "Gatilho" (Keeper). Verifica e executa penhores pendentes para uma ONG.
-     * Isso pode ser chamado por CADA UM que curtir (em `likePost`) ou por um bot.
+     * MODIFICADA COM TRY/CATCH para não reverter a transação 'likePost' principal.
      */
     function _executeReadyPledges(address _ngoAddress) internal {
         NGO storage ngo = ngos[_ngoAddress];
         uint256 currentReputation = ngo.reputation;
 
         uint256[] storage pledgeIds = pendingPledgesForNGO[_ngoAddress];
+        // Otimização: Criamos uma nova lista de penhores pendentes em memória
         uint256[] memory newPledgeIds = new uint256[](pledgeIds.length);
         uint256 newPledgeCount = 0;
 
@@ -250,19 +250,13 @@ contract YourContract {
                 continue; // Já foi processado ou cancelado
             }
 
-            // A MÁGICA ACONTECE AQUI:
+            // Verifica se a reputação foi atingida
             if (currentReputation >= pledge.minReputation) {
                 // Condição atingida! Tentar executar a transferência.
                 
-                // Usamos `transferFrom` para "puxar" os fundos (WETH) da carteira do doador
-                bool success = IERC20(pledge.token).transferFrom(
-                    pledge.donor,
-                    pledge.ngoAddress,
-                    pledge.amount
-                );
-
-                if (success) {
-                    // Deu certo!
+                // Usamos try/catch para a chamada externa (transferFrom)
+                try IERC20(pledge.token).transferFrom(pledge.donor, pledge.ngoAddress, pledge.amount) {
+                    // SUCESSO!
                     pledge.isActive = false; // Desativa o penhor
                     
                     // Atualiza os totais
@@ -270,12 +264,17 @@ contract YourContract {
                     allPosts[pledge.postId].totalDonated += pledge.amount;
 
                     emit PledgeExecuted(pledgeId, pledge.donor, pledge.ngoAddress, pledge.amount);
-                } else {
-                    // Falhou (ex: doador não tem mais fundos). 
+                    
+                    // Se deu certo, o penhor NÃO é adicionado à nova lista de pendentes
+
+                } catch {
+                    // FALHA! (Ex: doador sem fundos, 'approve' removido, etc.)
+                    // O 'catch' impede que a transação inteira (o 'like') falhe.
                     // Mantém o penhor ativo para tentar de novo.
                     newPledgeIds[newPledgeCount] = pledgeId;
                     newPledgeCount++;
                 }
+
             } else {
                 // Condição ainda não atingida, mantém o penhor na lista
                 newPledgeIds[newPledgeCount] = pledgeId;
@@ -290,8 +289,9 @@ contract YourContract {
         }
     }
     
-    // --- MODIFICAÇÃO EM `likePost` ---
-    // Agora, `likePost` também atua como o GATILHO
+    /**
+     * @dev Função 'likePost' que também atua como o GATILHO para os penhores.
+     */
     function likePost(uint256 _postId) public {
         address _liker = msg.sender;
         require(_postId < allPosts.length, "Post nao existe");
@@ -308,7 +308,6 @@ contract YourContract {
 
         // --- GATILHO DE EXECUÇÃO ---
         // Após o like, verifica se algum penhor pode ser executado
-        // CUIDADO: Isso pode tornar o `like` mais caro (mais gás)
         if (pendingPledgesForNGO[post.ngoOwner].length > 0) {
             _executeReadyPledges(post.ngoOwner);
         }
