@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { NextPage } from "next";
 import * as THREE from "three";
-// --- Imports do Vanta (Novo Background) ---
+import VantaGlobe from "vanta/dist/vanta.globe.min.js";
 import VantaNet from "vanta/dist/vanta.net.min.js";
+// --- Imports do Vanta (Novo Background) ---
+import VantaTopology from "vanta/dist/vanta.topology.min.js";
 import { useAccount } from "wagmi";
 
 // -------------------------------------------
@@ -109,6 +111,32 @@ const heroTitleStyle: React.CSSProperties = {
   color: "#ffffff",
 };
 
+const aboutUsSectionStyle: React.CSSProperties = {
+  ...contentSectionStyle,
+  position: "relative",
+  justifyContent: "space-around",
+  paddingTop: "rem",
+  paddingLeft: "4rem",
+  paddingRight: "rem",
+  alignItems: "flex-start",
+};
+
+const aboutUsTextStyle: React.CSSProperties = {
+  marginTop: "5rem",
+  maxWidth: "1000px",
+  textAlign: "justify",
+  color: "#374151", // Cinza escuro
+  fontSize: "1.25rem",
+};
+
+const herobelowtitleStyle: React.CSSProperties = {
+  fontSize: "1.15rem",
+  fontWeight: "semibold",
+  letterSpacing: "-0.05em",
+  marginBottom: "1rem",
+  color: "#ffffff",
+};
+
 const scrollIndicatorStyle: React.CSSProperties = {
   fontSize: "1rem",
   color: "#f0f0f0",
@@ -128,10 +156,12 @@ const ctaTitleStyle: React.CSSProperties = {
 const ctaSubtitleStyle: React.CSSProperties = {
   fontSize: "1.25rem",
   color: "#f0f0f0",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
+  padding: "0.5rem 1.5rem",
+  borderRadius: "12px",
   marginBottom: "3rem",
   maxWidth: "500px",
   textAlign: "center",
-  padding: "0 1rem",
 };
 
 const buttonContainerStyle: React.CSSProperties = {
@@ -220,6 +250,86 @@ const LandingPage: NextPage = () => {
     };
   }, [vantaEffect]);
 
+  const [vantaGlobeEffect, setVantaGlobeEffect] = useState<any>(null);
+  const vantaGlobeRef = useRef(null);
+  const [vantaHeroEffect, setVantaHeroEffect] = useState<any>(null);
+  const vantaHeroRef = useRef(null);
+  const [vantaCtaEffect, setVantaCtaEffect] = useState<any>(null);
+  const vantaCtaRef = useRef(null);
+
+  useEffect(() => {
+    if (!vantaGlobeEffect && vantaGlobeRef.current && VantaGlobe) {
+      const effect = VantaGlobe({
+        el: vantaGlobeRef.current,
+        THREE: THREE,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.0,
+        minWidth: 200.0,
+        scale: 1.0,
+        scaleMobile: 1.0,
+        // --- CÓDIGO ATUALIZADO (CORES DO GLOBO) ---
+        color: 0x84cc16, // Cor corrigida (verde-limão)
+        color2: 0x3b82f6, // Cor corrigida (azul)
+        backgroundColor: 0x0, // Pode manter 0x0
+
+        // --- ADICIONE ESTA LINHA ---
+        backgroundAlpha: 0.0,
+        // --- FIM DA ADIÇÃO ---
+        size: 1.2,
+      });
+      setVantaGlobeEffect(effect);
+    }
+    return () => {
+      if (vantaGlobeEffect) vantaGlobeEffect.destroy();
+    };
+  }, [vantaGlobeEffect]);
+
+  useEffect(() => {
+    if (!vantaHeroEffect && vantaHeroRef.current && VantaTopology) {
+      const effect = VantaTopology({
+        el: vantaHeroRef.current,
+        THREE: THREE,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.0,
+        minWidth: 200.0,
+        scale: 1.0,
+        scaleMobile: 1.0,
+        color: 0x14b8a6,
+        backgroundColor: 0x0,
+      });
+      setVantaHeroEffect(effect);
+    }
+    return () => {
+      if (vantaHeroEffect) vantaHeroEffect.destroy();
+    };
+  }, [vantaHeroEffect]);
+
+  useEffect(() => {
+    if (!vantaCtaEffect && vantaCtaRef.current && VantaTopology) {
+      const effect = VantaTopology({
+        el: vantaCtaRef.current,
+        THREE: THREE,
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.0,
+        minWidth: 200.0,
+        scale: 1.0,
+        scaleMobile: 1.0,
+        color: 0x84cc16,
+        backgroundColor: 0x0,
+      });
+      setVantaCtaEffect(effect);
+    }
+    return () => {
+      if (vantaCtaEffect) vantaCtaEffect.destroy();
+    };
+  }, [vantaCtaEffect]);
+
   // Lógica de Hover (separada)
   const [isUserCtaHover, setIsUserCtaHover] = useState(false);
   const [isNgoCtaHover, setIsNgoCtaHover] = useState(false);
@@ -289,6 +399,159 @@ const LandingPage: NextPage = () => {
             transform: translateY(-5px);
           }
         }
+        @keyframes shine {
+          0%,
+          100% {
+            box-shadow: 0 0 20px 5px rgba(255, 255, 0, 0.7);
+          }
+          50% {
+            box-shadow: 0 0 30px 10px rgba(255, 255, 0, 0.9);
+          }
+        }
+        @keyframes moveCloud {
+          from {
+            transform: translateX(-200px);
+          }
+          to {
+            transform: translateX(100vw);
+          }
+        }
+        .animated-bg-container {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          background: linear-gradient(to bottom, #87ceeb 0%, #f0f8ff 60%, #2e8b57 60%, #3cb371 100%);
+          z-index: 0;
+        }
+        .sun {
+          position: absolute;
+          top: 5%;
+          left: 10%;
+          width: 80px;
+          height: 80px;
+          background-color: #ffeb3b;
+          border-radius: 50%;
+          animation: shine 5s infinite linear;
+        }
+        .cloud {
+          position: absolute;
+          background: white;
+          border-radius: 50px;
+          opacity: 0.9;
+          animation-name: moveCloud;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        .cloud.one {
+          top: 15%;
+          left: 0;
+          width: 120px;
+          height: 40px;
+          animation-duration: 70s;
+          animation-delay: -10s;
+        }
+        .cloud.two {
+          top: 25%;
+          left: 0;
+          width: 150px;
+          height: 50px;
+          animation-duration: 90s;
+          animation-delay: -35s;
+        }
+        .cloud.three {
+          top: 20%;
+          left: 0;
+          width: 100px;
+          height: 30px;
+          animation-duration: 120s;
+          animation-delay: -60s;
+        }
+        .ciranda-circle {
+          position: absolute;
+          bottom: 5%;
+          left: 50%;
+          width: 280px;
+          height: 280px;
+          transform: translateX(-50%);
+        }
+        .person {
+          position: absolute;
+          top: calc(50% - 40px);
+          left: calc(50% - 11px);
+        }
+        .person .head {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: linear-gradient(to bottom, #3b82f6, #14b8a6);
+          position: relative;
+          z-index: 2;
+        }
+        .person .body {
+          width: 22px;
+          height: 35px;
+          border-radius: 10px 10px 0 0;
+          background: linear-gradient(to bottom, #14b8a6, #84cc16);
+          position: relative;
+          top: -2px;
+          z-index: 1;
+        }
+        .arm,
+        .leg {
+          position: absolute;
+          left: 50%;
+          width: 8px;
+          height: 28px;
+          background: linear-gradient(to bottom, #14b8a6, #84cc16);
+          transform-origin: center 4px;
+        }
+        .arm {
+          top: 2px;
+        }
+        .leg {
+          top: 30px;
+          background: linear-gradient(to bottom, #84cc16, #a3e635);
+        }
+        .arm.left {
+          transform: translateX(-50%) rotate(40deg);
+        }
+        .arm.right {
+          transform: translateX(-50%) rotate(-40deg);
+        }
+        .leg.left {
+          transform: translateX(-50%) rotate(-20deg);
+        }
+        .leg.right {
+          transform: translateX(-50%) rotate(20deg);
+        }
+        .person:nth-child(1) {
+          transform: rotate(0deg) translateY(-120px) rotate(0deg);
+        }
+        .person:nth-child(2) {
+          transform: rotate(60deg) translateY(-120px) rotate(-60deg);
+        }
+        .person:nth-child(3) {
+          transform: rotate(120deg) translateY(-120px) rotate(-120deg);
+        }
+        .person:nth-child(4) {
+          transform: rotate(180deg) translateY(-120px) rotate(-180deg);
+        }
+        .person:nth-child(5) {
+          transform: rotate(240deg) translateY(-120px) rotate(-240deg);
+        }
+        .person:nth-child(6) {
+          transform: rotate(300deg) translateY(-120px) rotate(-300deg);
+        }
+        .gradient-text {
+          background: linear-gradient(to right, #3b82f6, #14b8a6, #84cc16);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          text-fill-color: transparent;
+        }
       `}</style>
 
       {/* --- ESTRUTURA JSX ATUALIZADA --- */}
@@ -299,9 +562,67 @@ const LandingPage: NextPage = () => {
         {/* 2. O Container de Scroll (na frente) */}
         <div style={scrollContainerStyle}>
           {/* SEÇÃO 1: Hero */}
-          <section style={heroSectionStyle}>
-            <h1 style={heroTitleStyle}>make it happen</h1>
-            <div style={scrollIndicatorStyle}>Scroll Down ↓</div>
+          <section style={{ ...heroSectionStyle, position: "relative" }}>
+            <div
+              ref={vantaHeroRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                zIndex: 0,
+              }}
+            ></div>
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
+            >
+              <h2 style={heroTitleStyle}>make it happen</h2>
+              <h1 style={herobelowtitleStyle}>transparency, visibility and action.</h1>
+              <div style={scrollIndicatorStyle}>Scroll Down ↓</div>
+            </div>
+          </section>
+
+          {/* SEÇÃO About Us */}
+          <section style={aboutUsSectionStyle}>
+            <div
+              ref={vantaGlobeRef}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: "100%",
+                zIndex: 0,
+              }}
+            ></div>
+            <div
+              style={{
+                position: "relative",
+                zIndex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+              }}
+            >
+              <img src="/MIH_logo.png" alt="Make It Happen Logo" style={{ height: "180px", width: "auto" }} />
+              <div style={aboutUsTextStyle}>
+                <p className="gradient-text">
+                  We created Make It Happen to solve the crisis of trust in charity. Our platform is a decentralized
+                  social dApp where you can scroll through real-time photo and video updates from NGOs, just like a
+                  social media feed. We use cryptocurrency for donations, which means every transaction is recorded on
+                  the blockchain, allowing you to trace your money and see exactly where it goes, while giving you
+                  privacy as a anonymous donor. This radical transparency is designed to rebuild trust between donors
+                  and organizations and make sure your goodwill turns into real, verifiable action.
+                </p>
+              </div>
+            </div>
           </section>
 
           {/* SEÇÃO 2: Seu componente JSX (com classes Tailwind) */}
@@ -381,7 +702,7 @@ const LandingPage: NextPage = () => {
 
           {/* SEÇÃO 3: Call to Action + Botões ATUALIZADOS */}
           <section style={heroSectionStyle}>
-            <h2 style={ctaTitleStyle}>Ready to make a difference?</h2> {/* Traduzido */}
+            <h2 style={ctaTitleStyle}>Ready to make the difference?</h2> {/* Traduzido */}
             <p style={ctaSubtitleStyle}>
               Whether you are a donor wanting to ensure your help arrives, or an NGO seeking transparency.{" "}
               {/* Traduzido */}
