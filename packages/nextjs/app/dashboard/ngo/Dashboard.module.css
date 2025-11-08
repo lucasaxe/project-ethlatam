@@ -6,7 +6,7 @@
   padding: 0 1rem;
   font-family: system-ui, sans-serif;
   color: var(--color-text-primary);
-  background-color: var(--color-background-light); 
+  background-color: var(--color-background-light);
 }
 
 .header {
@@ -23,7 +23,11 @@
 .header h1 {
   margin: 0;
   font-size: 2rem;
-  background-image: linear-gradient(90deg, var(--color-primary-blue), var(--color-secondary-green));
+  background-image: linear-gradient(
+    90deg,
+    var(--color-primary-blue),
+    var(--color-secondary-green)
+  );
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
@@ -35,7 +39,8 @@
   gap: 1rem;
 }
 
-.buttonPrimary, .buttonSecondary {
+.buttonPrimary,
+.buttonSecondary {
   padding: 0.75rem 1.25rem;
   border: none;
   border-radius: 8px;
@@ -46,14 +51,18 @@
 }
 
 .buttonPrimary {
-  background-image: linear-gradient(90deg, var(--color-primary-blue), var(--color-secondary-green));
-  background-size: 150% auto; 
+  background-image: linear-gradient(
+    90deg,
+    var(--color-primary-blue),
+    var(--color-secondary-green)
+  );
+  background-size: 150% auto;
   color: white;
   border: none;
 }
 .buttonPrimary:hover {
-  background-position: right center; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  background-position: right center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
 }
 
@@ -63,11 +72,12 @@
   border: 1px solid var(--color-primary-blue);
 }
 .buttonSecondary:hover {
-  background-color: rgba(58, 125, 255, 0.05); 
+  background-color: rgba(58, 125, 255, 0.05);
   border-color: var(--color-primary-blue);
 }
 
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   font-size: 1.2rem;
   padding: 4rem;
@@ -80,7 +90,7 @@
   border-radius: 12px;
   padding: 1.5rem 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03); 
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 .section h2 {
@@ -139,14 +149,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  word-break: break-word; 
+  word-break: break-word;
 }
 
 .infoBox strong {
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--color-text-secondary);
-  text-transform: uppercase; 
+  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
@@ -165,7 +175,7 @@
 }
 
 .fullSpan {
-  grid-column: 1 / -1; 
+  grid-column: 1 / -1;
 }
 
 .postList {
@@ -176,22 +186,22 @@
 .postItem {
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  background-color: #ffffff; 
+  background-color: #ffffff;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
-  overflow: hidden; 
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .postItem:hover {
   transform: translateY(-3px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
 .postImage {
   width: 100%;
-  height: 200px; 
-  object-fit: cover; 
+  height: 200px;
+  object-fit: cover;
 }
 
 .postContent {
@@ -203,7 +213,7 @@
 
 .postContent h3 {
   margin: 0 0 0.5rem 0;
-  color: var(--color-primary-blue); 
+  color: var(--color-primary-blue);
   font-size: 1.2rem;
 }
 .postContent p {
@@ -244,4 +254,116 @@
   font-weight: 600;
   /* --- COR DO CORAÇÃO AGORA NA PALETA --- */
   color: var(--color-primary-blue); /* Ou var(--color-secondary-green) se preferir verde */
+}
+
+/* --- Estilos de Onboarding (Adicionar no final) --- */
+
+.onboardingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 10rem);
+  padding: 1rem;
+  background-color: var(--color-background-light);
+}
+
+.onboardingCard {
+  width: 100%;
+  /* [ALTERAÇÃO AQUI] Aumentado de 512px para 640px */
+  max-width: 640px;
+  background-color: #ffffff; /* bg-base-100 */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+  /* Borda com o azul da marca */
+  border: 1px solid rgba(58, 125, 255, 0.2);
+  border-radius: 1rem; /* DaisyUI's radius-box */
+  overflow: hidden;
+}
+
+.onboardingBody {
+  padding: 2.5rem 3rem; /* p-10 md:p-12 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.onboardingIcon {
+  width: 4rem; /* h-16 w-16 */
+  height: 4rem;
+  /* Cor primária da marca */
+  color: var(--color-primary-blue);
+}
+
+.onboardingTitle {
+  font-size: 2rem; /* text-3xl */
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  /* O gradiente da marca */
+  background-image: linear-gradient(
+    90deg,
+    var(--color-primary-blue),
+    var(--color-secondary-green)
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.onboardingText {
+  margin-top: 1rem;
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.onboardingText code {
+  font-family: monospace;
+  background-color: var(--color-background-light);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  font-size: 0.9rem;
+}
+
+.onboardingActions {
+  margin-top: 2rem; /* mt-8 */
+}
+
+/* O botão de registro usará .buttonPrimary, que já existe */
+.onboardingButton {
+  /* Herda de .buttonPrimary */
+  font-size: 1.125rem; /* btn-lg */
+  line-height: 1.75rem;
+  padding: 0.9rem 2.25rem;
+  font-weight: 600;
+  color: white !important; /* Garante texto branco */
+}
+
+.onboardingButton:disabled {
+  background-image: none;
+  background-color: #e0e0e0;
+  color: #888 !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Spinner de loading customizado */
+.loadingSpinner {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
