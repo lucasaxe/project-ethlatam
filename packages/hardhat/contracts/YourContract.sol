@@ -292,6 +292,8 @@ contract YourContract {
     /**
      * @dev Função 'likePost' que também atua como o GATILHO para os penhores.
      */
+
+    //novo
     function likePost(uint256 _postId) public {
         address _liker = msg.sender;
         require(_postId < allPosts.length, "Post nao existe");
