@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
 import { erc20Abi, parseEther } from "viem";
@@ -299,18 +298,6 @@ export const PostCard = ({ postId }: { postId: number }) => {
           {/* ... (Conteúdo da Coluna 1: Nome da ONG, Reputação, Descrição - Sem alteração) ... */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-4">
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{ngoName}</h2>
-          </div>
-
-          <div className="flex items-center gap-2 w-full justify-start mb-4">
-            <span className="text-lg font-medium text-base-content/80">Reputação:</span>
-            <span className="text-2xl font-bold">{Number(ngoReputation)}</span>
-            <Image
-              src="/good-reputation-token.jpg"
-              alt="Ícone de Reputação"
-              width={38}
-              height={38}
-              className="rounded-full"
-            />
           </div>
 
           <p className="text-base text-base-content/70 mb-8 w-full text-left">
