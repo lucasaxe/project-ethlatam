@@ -1,14 +1,22 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-hot-toast";
-// --- CORREÇÃO AQUI ---
-import { parseEther } from "viem";
-import { useAccount } from "wagmi";
-import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { erc20Abi, parseEther } from "viem";
+import { useAccount, useWriteContract } from "wagmi";
+// <-- Define 'useAccount' e 'useWriteContract'
+import { waitForTransactionReceipt } from "wagmi/actions";
+// <-- Define 'wagmiConfig'
+import { useDeployedContractInfo, useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+// <-- Define 'waitForTransactionReceipt'
+import { wagmiConfig } from "~~/services/web3/wagmiConfig";
 
-// 'formatEther' foi removido
+// --- ENDEREÇO DO WETH NA BASE SEPOLIA ---
+// !! IMPORTANTE !! Verifique este endereço.
+// Este é o endereço comum para WETH em testnets L2, mas confirme no block explorer.
+const WETH_ADDRESS = "0x4200000000000000000000000000000000000006";
 
 // --- Tipagem para os Metadados (do IPFS/JSON) ---
 interface PostMetadata {
@@ -17,14 +25,11 @@ interface PostMetadata {
   imageUrl: string;
 }
 
-// --- Ícones SVG (CORRIGIDO: Preenchimento com Gradiente Usando Hex Codes) ---
+// --- Ícones SVG (Sem alteração) ---
 const HeartIcon = ({ filled, ...props }: { filled: boolean; [key: string]: any }) => {
-  const gradientId = "heartGradient"; // ID Fixo para o gradiente SVG
-
+  const gradientId = "heartGradient";
   return (
     <div className="w-9 h-9 flex items-center justify-center">
-      {/* 1. Definição do Gradiente SVG (Usando Hex Codes dos tons do projeto) */}
-      {/* Azul: #3b82f6 (blue-500), Teal: #14b8a6 (teal-500), Lima: #84cc16 (lime-500) */}
       <svg width="0" height="0" className="absolute">
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#3b82f6" />
@@ -32,16 +37,12 @@ const HeartIcon = ({ filled, ...props }: { filled: boolean; [key: string]: any }
           <stop offset="100%" stopColor="#84cc16" />
         </linearGradient>
       </svg>
-
-      {/* 2. O Heart SVG que usa o gradiente definido */}
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="32"
         height="32"
         viewBox="0 0 24 24"
-        // Preenche com a URL do gradiente quando 'filled', caso contrário 'none'
         fill={filled ? `url(#${gradientId})` : "none"}
-        // O contorno também usa o gradiente quando preenchido para melhor efeito visual
         stroke={filled ? `url(#${gradientId})` : "currentColor"}
         strokeWidth="2"
         strokeLinecap="round"
@@ -56,7 +57,7 @@ const HeartIcon = ({ filled, ...props }: { filled: boolean; [key: string]: any }
 };
 
 /**
- * @dev Converts an 'ipfs://' URL to an HTTP URL (using 'ipfs.io' which worked in Chrome)
+ * @dev Converts an 'ipfs://' URL to an HTTP URL
  */
 const ipfsToHttpGateway = (ipfsUrl: string, gateway = "https://ipfs.io/ipfs/") => {
   if (!ipfsUrl || !ipfsUrl.startsWith("ipfs://")) {
@@ -68,31 +69,32 @@ const ipfsToHttpGateway = (ipfsUrl: string, gateway = "https://ipfs.io/ipfs/") =
 // --- Componente PostCard ---
 export const PostCard = ({ postId }: { postId: number }) => {
   const { address: connectedAddress } = useAccount();
-
   const queryClient = useQueryClient();
 
-  // --- NOVO ESTADO PARA O PREÇO DO ETH ---
+  // --- Estados ---
   const [ethPrice, setEthPrice] = useState(0);
-
   const [metadata, setMetadata] = useState<PostMetadata | null>(null);
   const [isLoadingMetadata, setIsLoadingMetadata] = useState(true);
-
   const [donationAmount, setDonationAmount] = useState("5.00"); // Valor em USD
+
+  // --- NOVO ESTADO PARA O PENHOR (PLEDGE) ---
+  const [minReputation, setMinReputation] = useState("100"); // Valor padrão
+  const [isApproving, setIsApproving] = useState(false);
 
   const modalId = `donate-modal-${postId}`;
 
-  // Query keys to invalidate cache
+  // Query keys
   const postDetailsQueryKey = ["scaffoldRead", "YourContract", "getPostDetails", { args: [BigInt(postId)] }];
   const hasLikedQueryKey = ["scaffoldRead", "YourContract", "hasLiked", { args: [BigInt(postId), connectedAddress] }];
 
-  // 1. Fetches ON-CHAIN data
+  // 1. Busca dados ON-CHAIN
   const { data: onChainPostData, isLoading: isLoadingOnChain } = useScaffoldReadContract({
     contractName: "YourContract",
     functionName: "getPostDetails",
     args: [BigInt(postId)],
   });
 
-  // 2. Checks if the user HAS LIKED
+  // 2. Verifica se o usuário curtiu
   const { data: userHasLiked } = useScaffoldReadContract({
     contractName: "YourContract",
     functionName: "hasLiked",
@@ -102,20 +104,30 @@ export const PostCard = ({ postId }: { postId: number }) => {
     },
   });
 
-  // 3. Prepares the 'like' function
+  // --- Pega o endereço do 'YourContract' para usar no 'approve' ---
+  const { data: deployedContractInfo, isLoading: isLoadingContractInfo } = useDeployedContractInfo("YourContract");
+  const yourContractAddress = deployedContractInfo?.address;
+
+  // 3. Prepara a função 'like'
   const { writeContractAsync: likePost, isPending: isLiking } = useScaffoldWriteContract({
     contractName: "YourContract",
   });
 
-  // WRITE Hook for DONATION
-  const { writeContractAsync: donateToPost, isPending: isDonating } = useScaffoldWriteContract({
+  // --- NOVOS HOOKS DE ESCRITA PARA O FLUXO DE PENHOR ---
+
+  // 1. Hook para APROVAR (no contrato WETH)
+  // Usamos o hook genérico do Wagmi, pois WETH é um contrato externo
+  const { writeContractAsync: approveWeth } = useWriteContract();
+
+  // 2. Hook para PENHORAR (no YourContract)
+  const { writeContractAsync: pledgeDonation, isPending: isPledging } = useScaffoldWriteContract({
     contractName: "YourContract",
   });
+  // --- FIM DOS NOVOS HOOKS ---
 
-  // --- useEffect ATUALIZADO (Busca na API local) ---
+  // useEffect para buscar preço do ETH
   useEffect(() => {
-    // Busca o preço do ETH da nossa própria API (que chama o CoinGecko no servidor)
-    fetch("/api/eth-price") // <-- MUDANÇA AQUI
+    fetch("/api/eth-price")
       .then(response => response.json())
       .then(data => {
         if (data && data.price) {
@@ -126,9 +138,9 @@ export const PostCard = ({ postId }: { postId: number }) => {
         console.error("Erro ao buscar preço do ETH (API local):", error);
         setEthPrice(0);
       });
-  }, []); // Roda apenas uma vez
+  }, []);
 
-  // Hook para buscar os metadados OFF-CHAIN (IPFS/JSON)
+  // useEffect para buscar metadados OFF-CHAIN (IPFS)
   useEffect(() => {
     if (onChainPostData && onChainPostData.contentUrl) {
       const httpUrl = ipfsToHttpGateway(onChainPostData.contentUrl);
@@ -152,7 +164,7 @@ export const PostCard = ({ postId }: { postId: number }) => {
   }, [onChainPostData]);
 
   /**
-   * @dev Called by the LIKE button
+   * @dev Chamado pelo botão LIKE
    */
   const handleLike = async () => {
     if (isLiking) return;
@@ -161,7 +173,6 @@ export const PostCard = ({ postId }: { postId: number }) => {
         functionName: "likePost",
         args: [BigInt(postId)],
       });
-      // AUTOMATIC UPDATE
       queryClient.invalidateQueries({ queryKey: postDetailsQueryKey });
       queryClient.invalidateQueries({ queryKey: hasLikedQueryKey });
     } catch (e) {
@@ -170,53 +181,95 @@ export const PostCard = ({ postId }: { postId: number }) => {
     }
   };
 
-  /**
-   * @dev Called by the "Confirm" button INSIDE THE MODAL
-   */
-  const handleDonate = async () => {
+  const handlePledge = async () => {
     const amountUsd = parseFloat(donationAmount);
+    const minReputationBigInt = BigInt(minReputation || "0");
 
-    // Validação
-    if (isDonating || !amountUsd || amountUsd <= 0) {
+    // Validação (sem alteração)
+    if (isApproving || isPledging) return;
+    if (!amountUsd || amountUsd <= 0) {
       toast.error("Por favor, insira um valor válido em USD.");
       return;
     }
+    if (minReputationBigInt <= 0) {
+      toast.error("Reputação mínima deve ser maior que 0.");
+      return;
+    }
     if (ethPrice === 0) {
-      // Checa se o preço foi carregado
-      toast.error("Não foi possível buscar o preço do ETH. Tente novamente.");
+      toast.error("Não foi possível buscar o preço do WETH. Tente novamente.");
+      return;
+    }
+    if (!yourContractAddress) {
+      toast.error("Endereço do contrato principal não encontrado.");
       return;
     }
 
-    const toastId = toast.loading("Calculando valor e preparando transação...");
+    const toastId = toast.loading("Calculando valor do penhor...");
     try {
-      // --- LÓGICA DE CONVERSÃO ---
+      // --- LÓGICA DE CONVERSÃO (SEM ALTERAÇÃO) ---
       const amountEth = amountUsd / ethPrice;
       const valueInWei = parseEther(amountEth.toString());
 
-      toast.loading("Confirmando doação na MetaMask...", { id: toastId });
+      // --- FLUXO DE 2 ETAPAS: APPROVE -> PLEDGE ---
 
-      await donateToPost({
-        functionName: "donateToPost",
-        args: [BigInt(postId)],
-        value: valueInWei, // Sends the Wei with the transaction
+      // Define o estado de 'approving' para desabilitar o botão
+      setIsApproving(true);
+
+      // ETAPA 1: APROVAR (Approve)
+      toast.loading("Por favor, aprove o gasto do WETH na sua carteira...", { id: toastId });
+
+      const approveTxHash = await approveWeth({
+        address: WETH_ADDRESS,
+        abi: erc20Abi,
+        functionName: "approve",
+        args: [yourContractAddress as `0x${string}`, valueInWei],
       });
 
-      toast.success("Donation sent successfully!", { id: toastId });
+      // ETAPA 1.5: AGUARDAR A MINERAÇÃO (A NOVA LÓGICA)
+      toast.loading("Aguardando confirmação da aprovação...", { id: toastId });
 
-      // AUTOMATIC UPDATE
+      await waitForTransactionReceipt(wagmiConfig, {
+        hash: approveTxHash,
+        confirmations: 1, // Espera pelo menos 1 bloco
+      });
+
+      // Libera o estado de 'approving'
+      setIsApproving(false);
+
+      // ETAPA 2: PENHORAR (Pledge)
+      // Esta etapa só roda DEPOIS que a Etapa 1.5 foi concluída.
+      toast.loading("Registrando seu penhor (pledge)...", { id: toastId });
+
+      await pledgeDonation({
+        functionName: "pledgeDonation",
+        args: [
+          BigInt(postId), // _postId
+          WETH_ADDRESS, // _token
+          valueInWei, // _amount
+          minReputationBigInt, // _minReputationTokens
+        ],
+      });
+
+      toast.success("Penhor registrado com sucesso! A doação ocorrerá quando a ONG atingir a meta.", { id: toastId });
+
       queryClient.invalidateQueries({ queryKey: postDetailsQueryKey });
-
       (document.getElementById(modalId) as HTMLDialogElement)?.close();
     } catch (e: any) {
-      console.error("Error trying to donate:", e);
+      // Limpa o estado em caso de erro
+      setIsApproving(false);
+
+      console.error("Erro ao registrar o penhor:", e);
+      // O 'pledgeDonation' (Scaffold-ETH) vai tratar o erro "Verifique a permissao..."
       if (e.message.includes("rejected")) {
-        toast.error("Donation rejected.", { id: toastId });
+        toast.error("Transação rejeitada.", { id: toastId });
+      } else if (e.message.includes("Verifique a permissao")) {
+        // Isso não deveria mais acontecer, mas é bom ter
+        toast.error("Falha na permissão do token.", { id: toastId });
       } else {
-        toast.error("Donation failed.", { id: toastId });
+        toast.error("Falha ao registrar penhor.", { id: toastId });
       }
     }
   };
-
   // --- Rendering ---
 
   if (isLoadingOnChain || isLoadingMetadata || !onChainPostData || !metadata || ethPrice === 0) {
@@ -232,36 +285,43 @@ export const PostCard = ({ postId }: { postId: number }) => {
 
   const httpImageUrl = ipfsToHttpGateway(imageUrl);
 
-  // --- CÁLCULO DE VALOR EM ETH (PARA O MODAL) ---
+  // --- CÁLCULO DE VALOR EM WETH (PARA O MODAL) ---
   let donationInEth = 0;
   if (ethPrice > 0) {
     donationInEth = parseFloat(donationAmount || "0") / ethPrice;
   }
-  // --- FIM DO CÁLCULO ---
 
   return (
     <section key={postId} className="flex items-center justify-center w-full py-16 border-b border-base-300">
       <div className="grid grid-cols-1 md:grid-cols-5 gap-8 w-full max-w-7xl mx-auto px-6 items-center">
-        {/* Column 1: NGO Information and DONATE Button */}
+        {/* Coluna 1: Informações da ONG e Botão DONATE */}
         <div className="md:col-span-1 flex flex-col justify-center md:order-1 order-2 items-center">
+          {/* ... (Conteúdo da Coluna 1: Nome da ONG, Reputação, Descrição - Sem alteração) ... */}
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 mb-4">
             <h2 className="text-3xl font-bold text-blue-600 w-full text-center">{ngoName}</h2>
           </div>
+
+          <div className="flex items-center gap-2 w-full justify-start mb-4">
+            <span className="text-lg font-medium text-base-content/80">Reputação:</span>
+            <span className="text-2xl font-bold">{Number(ngoReputation)}</span>
+            <Image
+              src="/good-reputation-token.jpg"
+              alt="Ícone de Reputação"
+              width={38}
+              height={38}
+              className="rounded-full"
+            />
+          </div>
+
           <p className="text-base text-base-content/70 mb-8 w-full text-left">
             {imageDescription.substring(0, 100)}...
           </p>
 
-          {/* ========================================= */}
-          {/* == BLOCK: REPUTATION TOKEN INFORMATION == */}
-          {/* ========================================= */}
           <div className="flex items-center space-x-2 mb-8 p-2 bg-base-200/50 rounded-lg border border-base-300 w-fit">
-            {/* Token Name and Value: Reputation: [NUMBER] */}
             <div className="flex items-baseline space-x-1">
               <span className="text-lg font-semibold text-blue-600">Reputation:</span>
               <span className="text-2xl font-bold text-blue-600">{Number(ngoReputation)}</span>
             </div>
-
-            {/* Token Image (w-12 h-12) */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/good-reputation-token.jpg"
@@ -269,7 +329,6 @@ export const PostCard = ({ postId }: { postId: number }) => {
               className="w-12 h-12 rounded-full object-cover"
             />
           </div>
-          {/* ========================================= */}
 
           <div className="flex justify-center w-full">
             <button
@@ -282,7 +341,7 @@ export const PostCard = ({ postId }: { postId: number }) => {
           </div>
         </div>
 
-        {/* Column 2: Main Image (Fetched from metadata) */}
+        {/* Coluna 2: Imagem Principal */}
         <div className="md:col-span-3 md:order-2 order-1">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -296,8 +355,9 @@ export const PostCard = ({ postId }: { postId: number }) => {
           />
         </div>
 
-        {/* Column 3: Description and LIKES */}
+        {/* Coluna 3: Descrição e LIKES */}
         <div className="md:col-span-1 md:order-3 order-3 flex flex-col justify-start self-start">
+          {/* ... (Conteúdo da Coluna 3: Título, Descrição, Botão Like - Sem alteração) ... */}
           <h3 className="text-2xl font-semibold mb-3 text-lime-600">{postTitle}</h3>
           <p className="text-base-content/80 italic">{imageDescription}</p>
 
@@ -316,15 +376,16 @@ export const PostCard = ({ postId }: { postId: number }) => {
         </div>
       </div>
 
-      {/* --- THE DONATION MODAL (POP-UP) --- */}
+      {/* --- MODAL DE DOAÇÃO ATUALIZADO --- */}
       <dialog id={modalId} className="modal modal-bottom sm:modal-middle">
         <div className="modal-box">
-          <h3 className="font-bold text-lg text-base-content">Make a Donation to:</h3>
+          <h3 className="font-bold text-lg text-base-content">Fazer um Penhor (Pledge) para:</h3>
           <p className="py-2 text-lime-600 font-semibold">{postTitle}</p>
 
+          {/* CAMPO DE VALOR (USD) */}
           <div className="form-control w-full mt-4">
             <label className="label" htmlFor={`usd-amount-${postId}`}>
-              <span className="label-text">Amount (USD)</span>
+              <span className="label-text">Valor da Doação (USD)</span>
             </label>
             <div className="join">
               <span className="btn join-item no-animation pointer-events-none">$</span>
@@ -339,24 +400,45 @@ export const PostCard = ({ postId }: { postId: number }) => {
               <span className="btn join-item no-animation pointer-events-none">USD</span>
             </div>
             <label className="label">
-              <span className="label-text-alt text-blue-600">Equivalente a: ~{donationInEth.toFixed(6)} ETH</span>
+              <span className="label-text-alt text-blue-600">Equivalente a: ~{donationInEth.toFixed(6)} WETH</span>
             </label>
           </div>
 
-          {/* Action Buttons */}
+          {/* --- NOVO CAMPO: REPUTAÇÃO MÍNIMA --- */}
+          <div className="form-control w-full mt-4">
+            <label className="label" htmlFor={`min-reputation-${postId}`}>
+              <span className="label-text">Reputação Mínima Exigida</span>
+              <span className="label-text-alt">Reputação Atual: {Number(ngoReputation)}</span>
+            </label>
+            <input
+              id={`min-reputation-${postId}`}
+              type="number"
+              value={minReputation}
+              onChange={e => setMinReputation(e.target.value)}
+              className="input input-bordered w-full"
+              placeholder="Ex: 100"
+            />
+            <label className="label">
+              <span className="label-text-alt text-base-content/70">
+                A doação (em WETH) só será executada quando a ONG atingir este valor.
+              </span>
+            </label>
+          </div>
+
+          {/* Botões de Ação */}
           <div className="modal-action flex flex-col-reverse sm:flex-row gap-2">
             <button
               className="btn btn-ghost"
               onClick={() => (document.getElementById(modalId) as HTMLDialogElement)?.close()}
             >
-              Cancel
+              Cancelar
             </button>
             <button
               className="btn btn-lg text-white font-bold bg-gradient-to-r from-blue-500 via-teal-500 to-lime-500 border-none hover:opacity-90"
-              onClick={handleDonate}
-              disabled={isDonating || !connectedAddress || !ethPrice}
+              onClick={handlePledge} // <-- CHAMA A NOVA FUNÇÃO
+              disabled={isApproving || isPledging || !connectedAddress || !ethPrice || isLoadingContractInfo}
             >
-              {isDonating ? <span className="loading loading-spinner"></span> : "Confirm Donation"}
+              {isApproving ? "Aprovando WETH..." : isPledging ? "Registrando Penhor..." : "Confirmar Penhor (2 etapas)"}
             </button>
           </div>
         </div>
