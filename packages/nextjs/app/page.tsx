@@ -8,8 +8,6 @@ import type { NextPage } from "next";
 import * as THREE from "three";
 import VantaGlobe from "vanta/dist/vanta.globe.min.js";
 import VantaNet from "vanta/dist/vanta.net.min.js";
-// --- Imports do Vanta (Novo Background) ---
-import VantaTopology from "vanta/dist/vanta.topology.min.js";
 import { useAccount } from "wagmi";
 
 // -------------------------------------------
@@ -287,8 +285,8 @@ const LandingPage: NextPage = () => {
   }, [vantaGlobeEffect]);
 
   useEffect(() => {
-    if (!vantaHeroEffect && vantaHeroRef.current && VantaTopology) {
-      const effect = VantaTopology({
+    if (!vantaHeroEffect && vantaHeroRef.current && window.VANTA && window.VANTA.TOPOLOGY) {
+      const effect = window.VANTA.TOPOLOGY({
         el: vantaHeroRef.current,
         THREE: THREE,
         mouseControls: true,
@@ -309,8 +307,8 @@ const LandingPage: NextPage = () => {
   }, [vantaHeroEffect]);
 
   useEffect(() => {
-    if (!vantaCtaEffect && vantaCtaRef.current && VantaTopology) {
-      const effect = VantaTopology({
+    if (!vantaCtaEffect && vantaCtaRef.current && window.VANTA && window.VANTA.TOPOLOGY) {
+      const effect = window.VANTA.TOPOLOGY({
         el: vantaCtaRef.current,
         THREE: THREE,
         mouseControls: true,

@@ -14,6 +14,17 @@ const nextConfig: NextConfig = {
     config.externals.push("pino-pretty", "lokijs", "encoding");
     return config;
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "placehold.co", // <-- A VÍRGULA FALTAVA NA LINHA ACIMA
+        port: "",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 const isIpfs = process.env.NEXT_PUBLIC_IPFS_BUILD === "true";
